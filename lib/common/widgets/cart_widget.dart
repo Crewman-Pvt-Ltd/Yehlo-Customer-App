@@ -13,7 +13,7 @@ class CartWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Stack(clipBehavior: Clip.none, children: [
-      Image.asset(Images.shoppingCart, height: size, width: size, color: color),
+      Image.asset(Images.homeIcon, height: size, width: size, color: color),
 
       GetBuilder<CartController>(builder: (cartController) {
         return cartController.cartList.isNotEmpty ? Positioned(

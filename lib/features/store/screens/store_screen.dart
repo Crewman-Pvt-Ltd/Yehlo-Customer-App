@@ -82,7 +82,7 @@ class _StoreScreenState extends State<StoreScreen> {
     await Get.find<StoreController>()
         .getStoreDetails(Store(id: widget.store!.id), widget.fromModule,
             slug: widget.slug)
-        .then((value) { 
+        .then((value) {
       Get.find<StoreController>().showButtonAnimation();
     });
     if (Get.find<CategoryController>().categoryList == null) {
@@ -194,8 +194,11 @@ class _StoreScreenState extends State<StoreScreen> {
                                       shape: BoxShape.circle,
                                       color: Theme.of(context).primaryColor),
                                   alignment: Alignment.center,
-                                  child: Icon(Icons.chevron_left,
-                                      color: Theme.of(context).cardColor, size: 30,),
+                                  child: Icon(
+                                    Icons.chevron_left,
+                                    color: Theme.of(context).cardColor,
+                                    size: 30,
+                                  ),
                                 ),
                                 onPressed: () => Get.back(),
                               ),
@@ -315,7 +318,8 @@ class _StoreScreenState extends State<StoreScreen> {
                                                                 15),
                                                         fit: BoxFit.cover,
                                                       ),
-                                                      storeController.isStoreOpenNow(
+                                                      storeController
+                                                              .isStoreOpenNow(
                                                                   store.active!,
                                                                   store
                                                                       .schedules)

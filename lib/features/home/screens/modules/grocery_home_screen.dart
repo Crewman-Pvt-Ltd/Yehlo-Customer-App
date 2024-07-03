@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:yehlo_User/features/flash_sale/widgets/flash_sale_view_widget.dart';
 //import 'package:yehlo_User/features/home/screens/modules/SeeAllCategories.dart';
 import 'package:yehlo_User/features/home/widgets/bad_weather_widget.dart';
+import 'package:yehlo_User/features/home/widgets/views/CategoryView1.dart';
 //import 'package:yehlo_User/features/home/widgets/views/CategoryView1.dart';
 import 'package:yehlo_User/features/home/widgets/views/banner_view.dart';
 import 'package:yehlo_User/features/home/widgets/views/best_reviewed_item_view.dart';

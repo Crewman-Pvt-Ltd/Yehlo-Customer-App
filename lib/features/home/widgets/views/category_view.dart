@@ -1,8 +1,4 @@
-import 'dart:math';
-
 import 'package:yehlo_User/features/category/controllers/category_controller.dart';
-import 'package:yehlo_User/features/home/screens/modules/SeeAllCategories.dart';
-import 'package:yehlo_User/features/home/widgets/views/SeeAll.dart';
 import 'package:yehlo_User/features/language/controllers/language_controller.dart';
 import 'package:yehlo_User/features/splash/controllers/splash_controller.dart';
 import 'package:yehlo_User/helper/responsive_helper.dart';
@@ -42,7 +38,7 @@ class CategoryView extends StatelessWidget {
                         children: [
                           Padding(
                             padding: const EdgeInsets.only(
-                              top: 20,
+                              top: 15,
                               left: 15,
                               right: 15,
                             ),
@@ -74,129 +70,104 @@ class CategoryView extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(
-                            height: 10,
+                            height: Dimensions.paddingSizeExtraLarge,
                           ),
                           Row(
                             children: [
                               Expanded(
-                                child: SizedBox(
-                                  height: MediaQuery.sizeOf(context).height/1.4,
-                                  child: categoryController.categoryList != null
-                                      ? ListView.builder(
-                                          shrinkWrap: true,
-                                          controller: scrollController,
-                                          itemCount: (min(
-                                                      categoryController
-                                                          .categoryList!.length,
-                                                      12) /
-                                                  4)
-                                              .ceil(), // Calculate the number of rows needed
-                                          padding: const EdgeInsets.only(
-                                            left: Dimensions.paddingSizeSmall,
-                                            top: Dimensions.paddingSizeDefault,
-                                          ),
-                                          physics:
-                                              const NeverScrollableScrollPhysics(),
-                                          scrollDirection: Axis.vertical,
-                                          itemBuilder: (context, rowIndex) {
-                                            final startIndex = rowIndex *
-                                                4; // Calculate start index for the current row
-                                            final endIndex = startIndex +
-                                                4; // Calculate end index for the current row
+                                child: Builder(
+                                  builder: (context) {
+                                    final categoryList =
+                                        categoryController.categoryList ?? [];
+                                    final int itemCount =
+                                        categoryList.length > 16
+                                            ? 16
+                                            : categoryList.length;
+                                    final int rowCount = (itemCount / 4).ceil();
 
-                                            return Row(
-                                              children: List.generate(
-                                                  4, // Number of columns in each row
-                                                  (columnIndex) {
-                                                final categoryIndex =
-                                                    startIndex + columnIndex;
-                                                if (categoryIndex >=
-                                                    min(
-                                                        categoryController
-                                                            .categoryList!
-                                                            .length,
-                                                        12)) {
-                                                  return const SizedBox(); // Return empty SizedBox if categoryIndex exceeds the list length
-                                                }
-                                                return Expanded(
-                                                  child: Padding(
+                                    return LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        final double maxHeightPerRow =
+                                            constraints.maxWidth /
+                                                2.9; // Adjust according to width
+
+                                        return IntrinsicHeight(
+                                          child: SizedBox(
+                                            height: maxHeightPerRow * rowCount,
+                                            child: categoryList.isNotEmpty
+                                                ? GridView.builder(
+                                                    physics:
+                                                        const NeverScrollableScrollPhysics(),
+                                                    itemCount: itemCount,
                                                     padding:
                                                         const EdgeInsets.only(
-                                                      bottom: Dimensions
-                                                          .paddingSizeDefault,
-                                                      right: Dimensions
+                                                      left: Dimensions
                                                           .paddingSizeSmall,
                                                       top: Dimensions
                                                           .paddingSizeDefault,
                                                     ),
-                                                    child: InkWell(
-                                                      onTap: () {
-                                                        final categoryId =
-                                                            categoryController
-                                                                .categoryList![
-                                                                    categoryIndex]
-                                                                .id;
-                                                        final categoryName =
-                                                            categoryController
-                                                                .categoryList![
-                                                                    categoryIndex]
-                                                                .name!;
-                                                        Get.toNamed(RouteHelper
-                                                            .getCategoryItemRoute(
-                                                                categoryId,
-                                                                categoryName));
-                                                      },
-                                                      child: Container(
-                                                        //color: Colors.red,
-                                                        child: SizedBox(
-                                                          height:
-                                                              143, // Adjust height of each item
+                                                    gridDelegate:
+                                                        const SliverGridDelegateWithFixedCrossAxisCount(
+                                                      crossAxisCount: 4,
+                                                      mainAxisSpacing: 65,
+                                                      crossAxisSpacing:
+                                                          Dimensions
+                                                              .paddingSizeSmall,
+                                                      childAspectRatio: 1,
+                                                    ),
+                                                    itemBuilder:
+                                                        (context, index) {
+                                                      return Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .only(
+                                                          bottom: 0,
+                                                          right: Dimensions
+                                                              .paddingSizeSmall,
+                                                          top: 0,
+                                                        ),
+                                                        child: InkWell(
+                                                          onTap: () {
+                                                            if (index == 15 &&
+                                                                itemCount >
+                                                                    16) {
+                                                              Get.toNamed(
+                                                                  RouteHelper
+                                                                      .getCategoryRoute());
+                                                            } else {
+                                                              Get.toNamed(
+                                                                  RouteHelper
+                                                                      .getCategoryItemRoute(
+                                                                categoryController
+                                                                    .categoryList![
+                                                                        index]
+                                                                    .id,
+                                                                categoryController
+                                                                    .categoryList![
+                                                                        index]
+                                                                    .name!,
+                                                              ));
+                                                            }
+                                                          },
                                                           child: Column(
                                                             children: [
-                                                              SizedBox(
-                                                                height: 94,
-                                                                width: 94,
-                                                                child: Stack(
-                                                                  children: [
-                                                                    Container(
-                                                                      height:
-                                                                          100,
-                                                                      width:
-                                                                          200,
-                                                                      decoration:
-                                                                          BoxDecoration(
-                                                                        // Set background color
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(Dimensions.radiusLarge),
-                                                                      ),
-                                                                      child:
-                                                                          ClipRRect(
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(Dimensions.radiusSmall),
-                                                                        child:
-                                                                            CustomImage(
-                                                                          image:
-                                                                              '${Get.find<SplashController>().configModel!.baseUrls!.categoryImageUrl}/${categoryController.categoryList![categoryIndex].image}',
-                                                                          height:
-                                                                              200,
-                                                                          width:
-                                                                              200,
-                                                                          fit: BoxFit
-                                                                              .contain,
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    // Your code for displaying additional content, if needed
-                                                                  ],
+                                                              ClipRRect(
+                                                                borderRadius:
+                                                                    BorderRadius.circular(
+                                                                        Dimensions
+                                                                            .radiusSmall),
+                                                                child: CustomImage(
+                                                                  image: '${Get.find<SplashController>().configModel!.baseUrls!.categoryImageUrl}/${categoryController.categoryList![index].image}',
+                                                                  fit: BoxFit
+                                                                      .cover,
                                                                 ),
                                                               ),
                                                               const SizedBox(
-                                                                  height: Dimensions
-                                                                      .paddingSizeExtraSmall),
+                                                                  height: 6),
                                                               Text(
                                                                 categoryController
                                                                     .categoryList![
-                                                                        categoryIndex]
+                                                                        index]
                                                                     .name!,
                                                                 style: robotoMedium.copyWith(
                                                                     fontSize:
@@ -221,17 +192,17 @@ class CategoryView extends StatelessWidget {
                                                             ],
                                                           ),
                                                         ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                );
-                                              }),
-                                            );
-                                          },
-                                        )
-                                      : CategoryShimmer(
-                                          categoryController:
-                                              categoryController),
+                                                      );
+                                                    },
+                                                  )
+                                                : CategoryShimmer(
+                                                    categoryController:
+                                                        categoryController),
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
                                 ),
                               ),
                               ResponsiveHelper.isMobile(context)
@@ -242,35 +213,19 @@ class CategoryView extends StatelessWidget {
                                             InkWell(
                                               onTap: () {
                                                 showDialog(
-                                                    context: context,
-                                                    builder: (con) => Dialog(
-                                                        child: SizedBox(
-                                                            height: 550,
-                                                            width: 600,
-                                                            child:
-                                                                CategoryPopUp(
-                                                              categoryController:
-                                                                  categoryController,
-                                                            ))));
+                                                  context: context,
+                                                  builder: (con) => Dialog(
+                                                    child: SizedBox(
+                                                      height: 550,
+                                                      width: 600,
+                                                      child: CategoryPopUp(
+                                                        categoryController:
+                                                            categoryController,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
                                               },
-                                              child: Padding(
-                                                padding: const EdgeInsets.only(
-                                                    right: Dimensions
-                                                        .paddingSizeSmall),
-                                                child: CircleAvatar(
-                                                  radius: 35,
-                                                  backgroundColor:
-                                                      Theme.of(context)
-                                                          .primaryColor,
-                                                  child: Text('view_all'.tr,
-                                                      style: TextStyle(
-                                                          fontSize: Dimensions
-                                                              .paddingSizeDefault,
-                                                          color:
-                                                              Theme.of(context)
-                                                                  .cardColor)),
-                                                ),
-                                              ),
                                             ),
                                             const SizedBox(
                                               height: 10,
@@ -281,7 +236,7 @@ class CategoryView extends StatelessWidget {
                                           categoryController:
                                               categoryController),
                             ],
-                          )
+                          ),
                         ],
                       );
       });
@@ -595,7 +550,7 @@ class CategoryShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
+    return GridView.builder(
       itemCount: 8,
       padding: const EdgeInsets.only(
           left: Dimensions.paddingSizeSmall,
@@ -613,7 +568,7 @@ class CategoryShimmer extends StatelessWidget {
               width: 80,
               child: Column(children: [
                 Container(
-                    height: 75,
+                    height: 324,
                     width: 75,
                     margin: EdgeInsets.only(
                       left: index == 0 ? 0 : Dimensions.paddingSizeExtraSmall,
@@ -639,6 +594,12 @@ class CategoryShimmer extends StatelessWidget {
           ),
         );
       },
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4, // Number of columns
+        mainAxisSpacing: Dimensions.paddingSizeDefault,
+        crossAxisSpacing: Dimensions.paddingSizeSmall,
+        childAspectRatio: 1,
+      ),
     );
   }
 }

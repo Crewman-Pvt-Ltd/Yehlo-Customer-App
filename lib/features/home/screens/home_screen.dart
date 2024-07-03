@@ -349,7 +349,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     Flexible(
                                                       child: Text(
                                                         AddressHelper
-                                                                .getUserAddressFromSharedPref()!
+                                                                  .getUserAddressFromSharedPref()!
                                                             .address!,
                                                         style: robotoRegular
                                                             .copyWith(
@@ -515,7 +515,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                 HomeScreenModuleView(splashController: splashController,),
+                                                  HomeScreenModuleView(
+                                                    splashController:
+                                                        splashController,
+                                                  ),
                                                   isGrocery
                                                       ? const GroceryHomeScreen()
                                                       : isPharmacy
@@ -694,7 +697,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           : SizedBox(
                                               height: MediaQuery.sizeOf(context)
                                                   .height,
-                                              child: WelcomeScreen())
+                                              child: const WelcomeScreen())
                                       // ModuleView(
                                       //     splashController: splashController),
                                       )),

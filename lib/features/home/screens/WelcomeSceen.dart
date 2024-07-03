@@ -52,24 +52,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<SplashController>(builder: (splashController) {
-      bool showMobileModule = !ResponsiveHelper.isDesktop(context) &&
-          splashController.module == null &&
-          splashController.configModel!.module == null;
-      bool isParcel = splashController.module != null &&
-          splashController.configModel!.moduleConfig!.module!.isParcel!;
-      bool isPharmacy = splashController.module != null &&
-          splashController.module!.moduleType.toString() ==
-              AppConstants.pharmacy;
-      bool isFood = splashController.module != null &&
-          splashController.module!.moduleType.toString() == AppConstants.food;
-      bool isShop = splashController.module != null &&
-          splashController.module!.moduleType.toString() ==
-              AppConstants.ecommerce;
-      bool isGrocery = splashController.module != null &&
-          splashController.module!.moduleType.toString() ==
-              AppConstants.grocery;
-
       return Scaffold(
+        backgroundColor: Colors.white,
         body: bannerUrl == null
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
@@ -80,25 +64,25 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       width: double.infinity,
                       height:
                           180, // Setting a fixed height to avoid unbounded height issue
-                      color: Colors.grey.withOpacity(0.7),
+                      // color: Colors.grey.withOpacity(0.7),
                       child: Stack(
                         children: [
-                          ColorFiltered(
-                            colorFilter: ColorFilter.mode(
-                              Colors.black.withOpacity(0.3),
-                              BlendMode.darken,
-                            ),
-                            child: CachedNetworkImage(
-                              imageUrl: bannerUrl!,
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: 300, // Match the height of the container
-                              placeholder: (context, url) => const Center(
-                                  child: CircularProgressIndicator()),
-                              errorWidget: (context, url, error) =>
-                                  const Icon(Icons.error),
-                            ),
+                          // ColorFiltered(
+                          //   colorFilter: ColorFilter.mode(
+                          //     Colors.black.withOpacity(0.3),
+                          //     BlendMode.darken,
+                          //   ),
+                          CachedNetworkImage(
+                            imageUrl: bannerUrl!,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: 330, // Match the height of the container
+                            placeholder: (context, url) => const Center(
+                                child: CircularProgressIndicator()),
+                            errorWidget: (context, url, error) =>
+                                const Icon(Icons.error),
                           ),
+
                           Positioned(
                             bottom: 20,
                             left: 20,
@@ -142,12 +126,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
                       child: Divider(),
                     ),
                     ModuleView(splashController: splashController),
-                    SizedBox(height: 70,),
+                    const SizedBox(
+                      height: 70,
+                    ),
                   ],
                 ),
               ),
