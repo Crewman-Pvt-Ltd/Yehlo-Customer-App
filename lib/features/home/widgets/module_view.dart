@@ -1,7 +1,14 @@
 import 'package:shimmer_animation/shimmer_animation.dart';
+import 'package:yehlo_User/common/widgets/address_widget.dart';
 import 'package:yehlo_User/common/widgets/custom_ink_well.dart';
+import 'package:yehlo_User/common/widgets/custom_loader.dart';
+import 'package:yehlo_User/features/address/controllers/address_controller.dart';
+import 'package:yehlo_User/features/address/domain/models/address_model.dart';
 import 'package:yehlo_User/features/banner/controllers/banner_controller.dart';
+import 'package:yehlo_User/features/location/controllers/location_controller.dart';
 import 'package:yehlo_User/features/splash/controllers/splash_controller.dart';
+import 'package:yehlo_User/helper/address_helper.dart';
+import 'package:yehlo_User/helper/auth_helper.dart';
 import 'package:yehlo_User/helper/responsive_helper.dart';
 import 'package:yehlo_User/util/dimensions.dart';
 import 'package:yehlo_User/util/styles.dart';
@@ -30,7 +37,7 @@ class ModuleView extends StatelessWidget {
                     crossAxisCount: 4,
                     mainAxisSpacing: Dimensions.paddingSizeSmall,
                     crossAxisSpacing: Dimensions.paddingSizeSmall,
-                    childAspectRatio: (1 / 1.2),
+                    childAspectRatio: (1 / 1),
                   ),
                   padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
                   itemCount: splashController.moduleList!.length,
@@ -44,13 +51,25 @@ class ModuleView extends StatelessWidget {
                         color: Theme.of(context).cardColor,
                         border: Border.all(
                             color: Theme.of(context).primaryColor, width: 0.15),
-                        boxShadow: [
+                        boxShadow: const [
                           BoxShadow(
-                              color: Theme.of(context)
-                                  .primaryColor
-                                  .withOpacity(0.4),
-                              spreadRadius: 1.3,
-                              blurRadius: 3)
+                            color: Color.fromRGBO(50, 50, 93, 0.25),
+                            offset: Offset(0, 50),
+                            blurRadius: 100,
+                            spreadRadius: -20,
+                          ),
+                          BoxShadow(
+                            color: Color.fromRGBO(0, 0, 0, 0.3),
+                            offset: Offset(0, 30),
+                            blurRadius: 60,
+                            spreadRadius: -30,
+                          ),
+                          BoxShadow(
+                            color: Color.fromRGBO(10, 37, 64, 0.35),
+                            offset: Offset(0, -2),
+                            blurRadius: 3,
+                            spreadRadius: 0,
+                          ),
                         ],
                       ),
                       child: CustomInkWell(
@@ -65,8 +84,8 @@ class ModuleView extends StatelessWidget {
                                 child: CustomImage(
                                   image:
                                       '${splashController.configModel!.baseUrls!.moduleImageUrl}/${splashController.moduleList![index].icon}',
-                                  height: 73,
-                                  width: 73,
+                                  height: 60,
+                                  width: 60,
                                 ),
                               ),
                               const SizedBox(
@@ -94,73 +113,96 @@ class ModuleView extends StatelessWidget {
                 ))
           : ModuleShimmer(isEnabled: splashController.moduleList == null),
 
-      // GetBuilder<AddressController>(builder: (locationController) {
-      //   List<AddressModel?> addressList = [];
-      //   if(AuthHelper.isLoggedIn() && locationController.addressList != null) {
-      //     addressList = [];
-      //     bool contain = false;
-      //     if(AddressHelper.getUserAddressFromSharedPref()!.id != null) {
-      //       for(int index=0; index<locationController.addressList!.length; index++) {
-      //         if(locationController.addressList![index].id == AddressHelper.getUserAddressFromSharedPref()!.id) {
-      //           contain = true;
-      //           break;
-      //         }
-      //       }
-      //     }
-      //     if(!contain) {
-      //       addressList.add(AddressHelper.getUserAddressFromSharedPref());
-      //     }
-      //     addressList.addAll(locationController.addressList!);
-      //   }
-      //   return (!AuthHelper.isLoggedIn() || locationController.addressList != null) ? addressList.isNotEmpty ? Column(
-      //     children: [
-
-      //       const SizedBox(height: Dimensions.paddingSizeLarge),
-      //       Padding(
-      //         padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
-      //         child: TitleWidget(title: 'deliver_to'.tr),
-      //       ),
-      //       const SizedBox(height: Dimensions.paddingSizeExtraSmall),
-      //       SizedBox(
-      //         height: 80,
-      //         child: ListView.builder(
-      //           physics: const BouncingScrollPhysics(),
-      //           itemCount: addressList.length,
-      //           scrollDirection: Axis.horizontal,
-      //           padding: const EdgeInsets.only(left: Dimensions.paddingSizeSmall, right: Dimensions.paddingSizeSmall, top: Dimensions.paddingSizeExtraSmall),
-      //           itemBuilder: (context, index) {
-      //             return Container(
-      //               width: 300,
-      //               padding: const EdgeInsets.only(right: Dimensions.paddingSizeSmall),
-      //               child: AddressWidget(
-      //                 address: addressList[index],
-      //                 fromAddress: false,
-      //                 onTap: () {
-      //                   if(AddressHelper.getUserAddressFromSharedPref()!.id != addressList[index]!.id) {
-      //                     Get.dialog(const CustomLoader(), barrierDismissible: false);
-      //                     Get.find<LocationController>().saveAddressAndNavigate(
-      //                       addressList[index], false, null, false, ResponsiveHelper.isDesktop(context),
-      //                     );
-      //                   }
-      //                 },
-      //               ),
-      //             );
-      //           },
-      //         ),
-      //       ),
-      //     ],
-      //   ) : const SizedBox() : AddressShimmer(isEnabled: AuthHelper.isLoggedIn() && locationController.addressList == null);
-      // }),
+      GetBuilder<AddressController>(builder: (locationController) {
+        List<AddressModel?> addressList = [];
+        if (AuthHelper.isLoggedIn() && locationController.addressList != null) {
+          addressList = [];
+          bool contain = false;
+          if (AddressHelper.getUserAddressFromSharedPref()!.id != null) {
+            for (int index = 0;
+                index < locationController.addressList!.length;
+                index++) {
+              if (locationController.addressList![index].id ==
+                  AddressHelper.getUserAddressFromSharedPref()!.id) {
+                contain = true;
+                break;
+              }
+            }
+          }
+          if (!contain) {
+            addressList.add(AddressHelper.getUserAddressFromSharedPref());
+          }
+          addressList.addAll(locationController.addressList!);
+        }
+        return (!AuthHelper.isLoggedIn() ||
+                locationController.addressList != null)
+            ? addressList.isNotEmpty
+                ? Column(
+                    children: [
+                      const SizedBox(height: Dimensions.paddingSizeLarge),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: Dimensions.paddingSizeSmall),
+                        child: TitleWidget(title: 'deliver_to'.tr),
+                      ),
+                      const SizedBox(height: Dimensions.paddingSizeExtraSmall),
+                      SizedBox(
+                        height: 80,
+                        child: ListView.builder(
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: addressList.length,
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.only(
+                              left: Dimensions.paddingSizeSmall,
+                              right: Dimensions.paddingSizeSmall,
+                              top: Dimensions.paddingSizeExtraSmall),
+                          itemBuilder: (context, index) {
+                            return Container(
+                              width: 300,
+                              padding: const EdgeInsets.only(
+                                  right: Dimensions.paddingSizeSmall),
+                              child: AddressWidget(
+                                address: addressList[index],
+                                fromAddress: false,
+                                onTap: () {
+                                  if (AddressHelper
+                                              .getUserAddressFromSharedPref()!
+                                          .id !=
+                                      addressList[index]!.id) {
+                                    Get.dialog(const CustomLoader(),
+                                        barrierDismissible: false);
+                                    Get.find<LocationController>()
+                                        .saveAddressAndNavigate(
+                                      addressList[index],
+                                      false,
+                                      null,
+                                      false,
+                                      ResponsiveHelper.isDesktop(context),
+                                    );
+                                  }
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  )
+                : const SizedBox()
+            : AddressShimmer(
+                isEnabled: AuthHelper.isLoggedIn() &&
+                    locationController.addressList == null);
+      }),
       const Padding(
         padding: EdgeInsets.symmetric(horizontal: 20),
         child: Divider(),
       ),
-      const SizedBox(
-        height: 10,
-      ),
-      const PopularStoreView(isPopular: false, isFeatured: true),
+      // const SizedBox(
+      //   height: 0,
+      // ),
+      //const PopularStoreView(isPopular: false, isFeatured: true),
 
-      const SizedBox(height: 120),
+      // const SizedBox(height: 0),
     ]);
   }
 }

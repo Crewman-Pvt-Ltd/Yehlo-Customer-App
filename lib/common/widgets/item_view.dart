@@ -125,30 +125,30 @@ class NewOnShimmerView extends StatelessWidget {
             borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
           ),
           child: Column(children: [
-            Expanded(
-              flex: 1,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.only(topLeft: Radius.circular(Dimensions.radiusDefault), topRight: Radius.circular(Dimensions.radiusDefault)),
-                child: Stack(clipBehavior: Clip.none, children: [
-                  Container(
-                    height: double.infinity, width: double.infinity,
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
-                  ),
+            // Expanded(
+            //   flex: 1,
+            //   child: ClipRRect(
+            //     borderRadius: const BorderRadius.only(topLeft: Radius.circular(Dimensions.radiusDefault), topRight: Radius.circular(Dimensions.radiusDefault)),
+            //     child: Stack(clipBehavior: Clip.none, children: [
+            //       Container(
+            //         height: double.infinity, width: double.infinity,
+            //         color: Theme.of(context).primaryColor.withOpacity(0.1),
+            //       ),
 
-                  Positioned(
-                    top: 15, right: 15,
-                    child: Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Theme.of(context).cardColor.withOpacity(0.8),
-                      ),
-                      child: Icon(Icons.favorite_border, color: Theme.of(context).primaryColor, size: 20),
-                    ),
-                  ),
-                ]),
-              ),
-            ),
+            //       Positioned(
+            //         top: 15, right: 15,
+            //         child: Container(
+            //           padding: const EdgeInsets.all(2),
+            //           decoration: BoxDecoration(
+            //             shape: BoxShape.circle,
+            //             color: Theme.of(context).cardColor.withOpacity(0.8),
+            //           ),
+            //           child: Icon(Icons.favorite_border, color: Theme.of(context).primaryColor, size: 20),
+            //         ),
+            //       ),
+            //     ]),
+            //   ),
+            // ),
 
             Expanded(
               flex: 1,

@@ -37,42 +37,51 @@ import 'package:yehlo_User/features/checkout/widgets/top_section.dart';
 import 'package:flutter/material.dart';
 
 class CheckoutScreen extends StatefulWidget {
-  final List<CartModel?>? cartList;
-  final bool fromCart;
-  final int? storeId;
   const CheckoutScreen(
       {super.key,
       required this.fromCart,
       required this.cartList,
       required this.storeId});
 
+  final List<CartModel?>? cartList;
+  final bool fromCart;
+  final int? storeId;
+
   @override
   CheckoutScreenState createState() => CheckoutScreenState();
 }
 
 class CheckoutScreenState extends State<CheckoutScreen> {
-  final ScrollController _scrollController = ScrollController();
+  List<AddressModel> address = [];
+  bool canCheckSmall = false;
+  final TextEditingController guestContactPersonNameController =
+      TextEditingController();
+
+  final TextEditingController guestContactPersonNumberController =
+      TextEditingController();
+
+  final TextEditingController guestEmailController = TextEditingController();
+  final FocusNode guestEmailNode = FocusNode();
+  final FocusNode guestNumberNode = FocusNode();
   final JustTheController tooltipController1 = JustTheController();
   final JustTheController tooltipController2 = JustTheController();
   final JustTheController tooltipController3 = JustTheController();
 
-  double? _taxPercent = 0;
+  List<CartModel?>? _cartList;
   bool? _isCashOnDeliveryActive = false;
   bool? _isDigitalPaymentActive = false;
   bool _isOfflinePaymentActive = false;
-  List<CartModel?>? _cartList;
   bool _isWalletActive = false;
+  final ScrollController _scrollController = ScrollController();
+  double? _taxPercent = 0;
 
-  List<AddressModel> address = [];
-  bool canCheckSmall = false;
+  @override
+  void dispose() {
+    super.dispose();
 
-  final TextEditingController guestContactPersonNameController =
-      TextEditingController();
-  final TextEditingController guestContactPersonNumberController =
-      TextEditingController();
-  final TextEditingController guestEmailController = TextEditingController();
-  final FocusNode guestNumberNode = FocusNode();
-  final FocusNode guestEmailNode = FocusNode();
+    guestContactPersonNameController.dispose();
+    guestContactPersonNumberController.dispose();
+  }
 
   @override
   void initState() {
@@ -145,412 +154,6 @@ class CheckoutScreenState extends State<CheckoutScreen> {
         Get.find<CheckoutController>().selectedTips != -1
             ? AppConstants.tips[Get.find<CheckoutController>().selectedTips]
             : '';
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-
-    guestContactPersonNameController.dispose();
-    guestContactPersonNumberController.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    Module? module =
-        Get.find<SplashController>().configModel!.moduleConfig!.module;
-    bool guestCheckoutPermission = AuthHelper.isGuestLoggedIn() &&
-        Get.find<SplashController>().configModel!.guestCheckoutStatus!;
-
-    return Scaffold(
-      appBar: CustomAppBar(title: 'checkout'.tr),
-      endDrawer: const MenuDrawer(),
-      endDrawerEnableOpenDragGesture: false,
-      body: guestCheckoutPermission || AuthHelper.isLoggedIn()
-          ? GetBuilder<CheckoutController>(builder: (checkoutController) {
-              List<DropdownItem<int>> addressList = _getDropdownAddressList(
-                  context: context,
-                  addressList: Get.find<AddressController>().addressList,
-                  store: checkoutController.store);
-              address = _getAddressList(
-                  addressList: Get.find<AddressController>().addressList,
-                  store: checkoutController.store);
-
-              bool todayClosed = false;
-              bool tomorrowClosed = false;
-              Pivot? moduleData =
-                  _getModuleData(store: checkoutController.store);
-              _isCashOnDeliveryActive =
-                  _checkCODActive(store: checkoutController.store);
-              _isDigitalPaymentActive =
-                  _checkDigitalPaymentActive(store: checkoutController.store);
-              _isOfflinePaymentActive = Get.find<SplashController>()
-                      .configModel!
-                      .offlinePaymentStatus! &&
-                  _checkZoneOfflinePaymentOnOff(
-                      addressModel:
-                          AddressHelper.getUserAddressFromSharedPref());
-              if (checkoutController.store != null) {
-                todayClosed = checkoutController.isStoreClosed(
-                    true,
-                    checkoutController.store!.active!,
-                    checkoutController.store!.schedules);
-                tomorrowClosed = checkoutController.isStoreClosed(
-                    false,
-                    checkoutController.store!.active!,
-                    checkoutController.store!.schedules);
-                _taxPercent = checkoutController.store!.tax;
-              }
-              return GetBuilder<CouponController>(builder: (couponController) {
-                double? maxCodOrderAmount;
-
-                if (moduleData != null) {
-                  maxCodOrderAmount = moduleData.maximumCodOrderAmount;
-                }
-                double price = _calculatePrice(
-                    store: checkoutController.store, cartList: _cartList);
-                double addOns = _calculateAddonsPrice(
-                    store: checkoutController.store, cartList: _cartList);
-                double variations = _calculateVariationPrice(
-                    store: checkoutController.store,
-                    cartList: _cartList,
-                    calculateWithoutDiscount: true);
-                double? discount = _calculateDiscount(
-                  store: checkoutController.store,
-                  cartList: _cartList,
-                  price: price,
-                  addOns: addOns,
-                );
-                double couponDiscount =
-                    PriceConverter.toFixed(couponController.discount!);
-                bool taxIncluded =
-                    Get.find<SplashController>().configModel!.taxIncluded == 1;
-                double orderAmount = _calculateOrderAmount(
-                  price: price,
-                  variations: variations,
-                  discount: discount,
-                  addOns: addOns,
-                  couponDiscount: couponDiscount,
-                  cartList: _cartList,
-                );
-                double tax = _calculateTax(
-                  taxIncluded: taxIncluded,
-                  orderAmount: orderAmount,
-                  taxPercent: _taxPercent,
-                );
-                double subTotal = _calculateSubTotal(
-                    price: price,
-                    addOns: addOns,
-                    variations: variations,
-                    cartList: _cartList);
-                double additionalCharge = Get.find<SplashController>()
-                        .configModel!
-                        .additionalChargeStatus!
-                    ? Get.find<SplashController>().configModel!.additionCharge!
-                    : 0;
-                double originalCharge = _calculateOriginalDeliveryCharge(
-                  store: checkoutController.store,
-                  address: AddressHelper.getUserAddressFromSharedPref()!,
-                  distance: checkoutController.distance,
-                  extraCharge: checkoutController.extraCharge,
-                );
-                double deliveryCharge = _calculateDeliveryCharge(
-                  store: checkoutController.store,
-                  address: AddressHelper.getUserAddressFromSharedPref()!,
-                  distance: checkoutController.distance,
-                  extraCharge: checkoutController.extraCharge,
-                  orderType: checkoutController.orderType!,
-                  orderAmount: orderAmount,
-                );
-
-                double total = _calculateTotal(
-                  subTotal: subTotal,
-                  deliveryCharge: deliveryCharge,
-                  discount: discount,
-                  couponDiscount: couponDiscount,
-                  taxIncluded: taxIncluded,
-                  tax: tax,
-                  orderType: checkoutController.orderType!,
-                  tips: checkoutController.tips,
-                  additionalCharge: additionalCharge,
-                );
-
-                if (widget.storeId != null) {
-                  checkoutController.setPaymentMethod(0, isUpdate: false);
-                }
-                checkoutController.setTotalAmount(total -
-                    (checkoutController.isPartialPay
-                        ? Get.find<ProfileController>()
-                            .userInfoModel!
-                            .walletBalance!
-                        : 0));
-
-                return (checkoutController.distance != null &&
-                        checkoutController.store != null)
-                    ? Column(
-                        children: [
-                          ResponsiveHelper.isDesktop(context)
-                              ? Container(
-                                  height: 64,
-                                  color: Theme.of(context)
-                                      .primaryColor
-                                      .withOpacity(0.10),
-                                  child: Center(
-                                      child: Text('checkout'.tr,
-                                          style: robotoMedium)),
-                                )
-                              : const SizedBox(),
-                          Expanded(
-                              child: SingleChildScrollView(
-                            controller: _scrollController,
-                            physics: const BouncingScrollPhysics(),
-                            child: FooterView(
-                                child: SizedBox(
-                              width: Dimensions.webMaxWidth,
-                              child: ResponsiveHelper.isDesktop(context)
-                                  ? Padding(
-                                      padding: const EdgeInsets.only(
-                                          top: Dimensions.paddingSizeLarge),
-                                      child: Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Expanded(
-                                                flex: 6,
-                                                child: TopSection(
-                                                  checkoutController:
-                                                      checkoutController,
-                                                  charge: originalCharge,
-                                                  deliveryCharge:
-                                                      deliveryCharge,
-                                                  addressList: addressList,
-                                                  tomorrowClosed:
-                                                      tomorrowClosed,
-                                                  todayClosed: todayClosed,
-                                                  module: module,
-                                                  price: price,
-                                                  discount: discount,
-                                                  addOns: addOns,
-                                                  address: address,
-                                                  cartList: _cartList,
-                                                  isCashOnDeliveryActive:
-                                                      _isCashOnDeliveryActive!,
-                                                  isDigitalPaymentActive:
-                                                      _isDigitalPaymentActive!,
-                                                  isWalletActive:
-                                                      _isWalletActive,
-                                                  storeId: widget.storeId,
-                                                  total: total,
-                                                  isOfflinePaymentActive:
-                                                      _isOfflinePaymentActive,
-                                                  guestNameTextEditingController:
-                                                      guestContactPersonNameController,
-                                                  guestNumberTextEditingController:
-                                                      guestContactPersonNumberController,
-                                                  guestNumberNode:
-                                                      guestNumberNode,
-                                                  guestEmailController:
-                                                      guestEmailController,
-                                                  guestEmailNode:
-                                                      guestEmailNode,
-                                                  tooltipController1:
-                                                      tooltipController1,
-                                                  tooltipController2:
-                                                      tooltipController2,
-                                                  dmTipsTooltipController:
-                                                      tooltipController3,
-                                                )),
-                                            const SizedBox(
-                                                width: Dimensions
-                                                    .paddingSizeLarge),
-                                            Expanded(
-                                                flex: 4,
-                                                child: BottomSection(
-                                                  checkoutController:
-                                                      checkoutController,
-                                                  total: total,
-                                                  module: module!,
-                                                  subTotal: subTotal,
-                                                  discount: discount,
-                                                  couponController:
-                                                      couponController,
-                                                  taxIncluded: taxIncluded,
-                                                  tax: tax,
-                                                  deliveryCharge:
-                                                      deliveryCharge,
-                                                  todayClosed: todayClosed,
-                                                  tomorrowClosed:
-                                                      tomorrowClosed,
-                                                  orderAmount: orderAmount,
-                                                  maxCodOrderAmount:
-                                                      maxCodOrderAmount,
-                                                  storeId: widget.storeId,
-                                                  taxPercent: _taxPercent,
-                                                  price: price,
-                                                  addOns: addOns,
-                                                  checkoutButton:
-                                                      _orderPlaceButton(
-                                                    checkoutController,
-                                                    todayClosed,
-                                                    tomorrowClosed,
-                                                    orderAmount,
-                                                    deliveryCharge,
-                                                    tax,
-                                                    discount,
-                                                    total,
-                                                    maxCodOrderAmount,
-                                                  ),
-                                                )),
-                                          ]),
-                                    )
-                                  : Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                          TopSection(
-                                            checkoutController:
-                                                checkoutController,
-                                            charge: originalCharge,
-                                            deliveryCharge: deliveryCharge,
-                                            addressList: addressList,
-                                            tomorrowClosed: tomorrowClosed,
-                                            todayClosed: todayClosed,
-                                            module: module,
-                                            price: price,
-                                            discount: discount,
-                                            addOns: addOns,
-                                            address: address,
-                                            cartList: _cartList,
-                                            isCashOnDeliveryActive:
-                                                _isCashOnDeliveryActive!,
-                                            isDigitalPaymentActive:
-                                                _isDigitalPaymentActive!,
-                                            isWalletActive: _isWalletActive,
-                                            storeId: widget.storeId,
-                                            total: total,
-                                            isOfflinePaymentActive:
-                                                _isOfflinePaymentActive,
-                                            guestNameTextEditingController:
-                                                guestContactPersonNameController,
-                                            guestNumberTextEditingController:
-                                                guestContactPersonNumberController,
-                                            guestNumberNode: guestNumberNode,
-                                            guestEmailController:
-                                                guestEmailController,
-                                            guestEmailNode: guestEmailNode,
-                                            tooltipController1:
-                                                tooltipController1,
-                                            tooltipController2:
-                                                tooltipController2,
-                                            dmTipsTooltipController:
-                                                tooltipController3,
-                                          ),
-                                          BottomSection(
-                                            checkoutController:
-                                                checkoutController,
-                                            total: total,
-                                            module: module!,
-                                            subTotal: subTotal,
-                                            discount: discount,
-                                            couponController: couponController,
-                                            taxIncluded: taxIncluded,
-                                            tax: tax,
-                                            deliveryCharge: deliveryCharge,
-                                            todayClosed: todayClosed,
-                                            tomorrowClosed: tomorrowClosed,
-                                            orderAmount: orderAmount,
-                                            maxCodOrderAmount:
-                                                maxCodOrderAmount,
-                                            storeId: widget.storeId,
-                                            taxPercent: _taxPercent,
-                                            price: price,
-                                            addOns: addOns,
-                                            checkoutButton: _orderPlaceButton(
-                                              checkoutController,
-                                              todayClosed,
-                                              tomorrowClosed,
-                                              orderAmount,
-                                              deliveryCharge,
-                                              tax,
-                                              discount,
-                                              total,
-                                              maxCodOrderAmount,
-                                            ),
-                                          )
-                                        ]),
-                            )),
-                          )),
-                          ResponsiveHelper.isDesktop(context)
-                              ? const SizedBox()
-                              : Container(
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context).cardColor,
-                                    boxShadow: [
-                                      BoxShadow(
-                                          color: Theme.of(context)
-                                              .primaryColor
-                                              .withOpacity(0.1),
-                                          blurRadius: 10)
-                                    ],
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal:
-                                                Dimensions.paddingSizeLarge,
-                                            vertical: Dimensions
-                                                .paddingSizeExtraSmall),
-                                        child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                checkoutController.isPartialPay
-                                                    ? 'due_payment'.tr
-                                                    : 'total_amount'.tr,
-                                                style: robotoMedium.copyWith(
-                                                    fontSize: Dimensions
-                                                        .fontSizeLarge,
-                                                    color: Theme.of(context)
-                                                        .primaryColor),
-                                              ),
-                                              PriceConverter
-                                                  .convertAnimationPrice(
-                                                checkoutController
-                                                    .viewTotalPrice,
-                                                textStyle:
-                                                    robotoMedium.copyWith(
-                                                        fontSize: Dimensions
-                                                            .fontSizeLarge,
-                                                        color: Theme.of(context)
-                                                            .primaryColor),
-                                              ),
-                                            ]),
-                                      ),
-                                      _orderPlaceButton(
-                                          checkoutController,
-                                          todayClosed,
-                                          tomorrowClosed,
-                                          orderAmount,
-                                          deliveryCharge,
-                                          tax,
-                                          discount,
-                                          total,
-                                          maxCodOrderAmount),
-                                    ],
-                                  ),
-                                ),
-                        ],
-                      )
-                    : const CheckoutScreenShimmerView();
-              });
-            })
-          : NotLoggedInScreen(callBack: (value) {
-              initCall();
-              setState(() {});
-            }),
-    );
   }
 
   Widget _orderPlaceButton(
@@ -1238,7 +841,8 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                 break;
               }
             }
-            discount = discount + (variationWithoutDiscountPrice - variationPrice);
+            discount =
+                discount + (variationWithoutDiscountPrice - variationPrice);
           } else {
             double d = ((cartModel.item!.price! -
                     PriceConverter.convertWithDiscount(
@@ -1446,5 +1050,403 @@ class CheckoutScreenState extends State<CheckoutScreen> {
     }
     status = zoneData?.offlinePayment ?? false;
     return status;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Module? module =
+        Get.find<SplashController>().configModel!.moduleConfig!.module;
+    bool guestCheckoutPermission = AuthHelper.isGuestLoggedIn() &&
+        Get.find<SplashController>().configModel!.guestCheckoutStatus!;
+
+    return Scaffold(
+      appBar: CustomAppBar(title: 'checkout'.tr),
+      endDrawer: const MenuDrawer(),
+      endDrawerEnableOpenDragGesture: false,
+      body: guestCheckoutPermission || AuthHelper.isLoggedIn()
+          ? GetBuilder<CheckoutController>(builder: (checkoutController) {
+              List<DropdownItem<int>> addressList = _getDropdownAddressList(
+                  context: context,
+                  addressList: Get.find<AddressController>().addressList,
+                  store: checkoutController.store);
+              address = _getAddressList(
+                  addressList: Get.find<AddressController>().addressList,
+                  store: checkoutController.store);
+
+              bool todayClosed = false;
+              bool tomorrowClosed = false;
+              Pivot? moduleData =
+                  _getModuleData(store: checkoutController.store);
+              _isCashOnDeliveryActive =
+                  _checkCODActive(store: checkoutController.store);
+              _isDigitalPaymentActive =
+                  _checkDigitalPaymentActive(store: checkoutController.store);
+              _isOfflinePaymentActive = Get.find<SplashController>()
+                      .configModel!
+                      .offlinePaymentStatus! &&
+                  _checkZoneOfflinePaymentOnOff(
+                      addressModel:
+                          AddressHelper.getUserAddressFromSharedPref());
+              if (checkoutController.store != null) {
+                todayClosed = checkoutController.isStoreClosed(
+                    true,
+                    checkoutController.store!.active!,
+                    checkoutController.store!.schedules);
+                tomorrowClosed = checkoutController.isStoreClosed(
+                    false,
+                    checkoutController.store!.active!,
+                    checkoutController.store!.schedules);
+                _taxPercent = checkoutController.store!.tax;
+              }
+              return GetBuilder<CouponController>(builder: (couponController) {
+                double? maxCodOrderAmount;
+
+                if (moduleData != null) {
+                  maxCodOrderAmount = moduleData.maximumCodOrderAmount;
+                }
+                double price = _calculatePrice(
+                    store: checkoutController.store, cartList: _cartList);
+                double addOns = _calculateAddonsPrice(
+                    store: checkoutController.store, cartList: _cartList);
+                double variations = _calculateVariationPrice(
+                    store: checkoutController.store,
+                    cartList: _cartList,
+                    calculateWithoutDiscount: true);
+                double? discount = _calculateDiscount(
+                  store: checkoutController.store,
+                  cartList: _cartList,
+                  price: price,
+                  addOns: addOns,
+                );
+                double couponDiscount =
+                    PriceConverter.toFixed(couponController.discount!);
+                bool taxIncluded =
+                    Get.find<SplashController>().configModel!.taxIncluded == 1;
+                double orderAmount = _calculateOrderAmount(
+                  price: price,
+                  variations: variations,
+                  discount: discount,
+                  addOns: addOns,
+                  couponDiscount: couponDiscount,
+                  cartList: _cartList,
+                );
+                double tax = _calculateTax(
+                  taxIncluded: taxIncluded,
+                  orderAmount: orderAmount,
+                  taxPercent: _taxPercent,
+                );
+                double subTotal = _calculateSubTotal(
+                    price: price,
+                    addOns: addOns,
+                    variations: variations,
+                    cartList: _cartList);
+                double additionalCharge = Get.find<SplashController>()
+                        .configModel!
+                        .additionalChargeStatus!
+                    ? Get.find<SplashController>().configModel!.additionCharge!
+                    : 0;
+                double originalCharge = _calculateOriginalDeliveryCharge(
+                  store: checkoutController.store,
+                  address: AddressHelper.getUserAddressFromSharedPref()!,
+                  distance: checkoutController.distance,
+                  extraCharge: checkoutController.extraCharge,
+                );
+                double deliveryCharge = _calculateDeliveryCharge(
+                  store: checkoutController.store,
+                  address: AddressHelper.getUserAddressFromSharedPref()!,
+                  distance: checkoutController.distance,
+                  extraCharge: checkoutController.extraCharge,
+                  orderType: checkoutController.orderType!,
+                  orderAmount: orderAmount,
+                );
+
+                double total = _calculateTotal(
+                  subTotal: subTotal,
+                  deliveryCharge: deliveryCharge,
+                  discount: discount,
+                  couponDiscount: couponDiscount,
+                  taxIncluded: taxIncluded,
+                  tax: tax,
+                  orderType: checkoutController.orderType!,
+                  tips: checkoutController.tips,
+                  additionalCharge: additionalCharge,
+                );
+
+                if (widget.storeId != null) {
+                  checkoutController.setPaymentMethod(0, isUpdate: false);
+                }
+                checkoutController.setTotalAmount(total -
+                    (checkoutController.isPartialPay
+                        ? Get.find<ProfileController>()
+                            .userInfoModel!
+                            .walletBalance!
+                        : 0));
+
+                return (checkoutController.distance != null &&
+                        checkoutController.store != null)
+                    ? Column(
+                        children: [
+                          ResponsiveHelper.isDesktop(context)
+                              ? Container(
+                                  height: 64,
+                                  color: Theme.of(context)
+                                      .primaryColor
+                                      .withOpacity(0.10),
+                                  child: Center(
+                                      child: Text('RollOut'.tr,
+                                          style: robotoMedium)),
+                                )
+                              : const SizedBox(),
+                          Expanded(
+                              child: SingleChildScrollView(
+                            controller: _scrollController,
+                            physics: const BouncingScrollPhysics(),
+                            child: FooterView(
+                                child: SizedBox(
+                              width: Dimensions.webMaxWidth,
+                              child: ResponsiveHelper.isDesktop(context)
+                                  ? Padding(
+                                      padding: const EdgeInsets.only(
+                                          top: Dimensions.paddingSizeLarge),
+                                      child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Expanded(
+                                                flex: 6,
+                                                child: TopSection(
+                                                  checkoutController:
+                                                      checkoutController,
+                                                  charge: originalCharge,
+                                                  deliveryCharge:
+                                                      deliveryCharge,
+                                                  addressList: addressList,
+                                                  tomorrowClosed:
+                                                      tomorrowClosed,
+                                                  todayClosed: todayClosed,
+                                                  module: module,
+                                                  price: price,
+                                                  discount: discount,
+                                                  addOns: addOns,
+                                                  address: address,
+                                                  cartList: _cartList,
+                                                  isCashOnDeliveryActive:
+                                                      _isCashOnDeliveryActive!,
+                                                  isDigitalPaymentActive:
+                                                      _isDigitalPaymentActive!,
+                                                  isWalletActive:
+                                                      _isWalletActive,
+                                                  storeId: widget.storeId,
+                                                  total: total,
+                                                  isOfflinePaymentActive:
+                                                      _isOfflinePaymentActive,
+                                                  guestNameTextEditingController:
+                                                      guestContactPersonNameController,
+                                                  guestNumberTextEditingController:
+                                                      guestContactPersonNumberController,
+                                                  guestNumberNode:
+                                                      guestNumberNode,
+                                                  guestEmailController:
+                                                      guestEmailController,
+                                                  guestEmailNode:
+                                                      guestEmailNode,
+                                                  tooltipController1:
+                                                      tooltipController1,
+                                                  tooltipController2:
+                                                      tooltipController2,
+                                                  dmTipsTooltipController:
+                                                      tooltipController3,
+                                                )),
+                                            const SizedBox(
+                                                width: Dimensions
+                                                    .paddingSizeLarge),
+                                            Expanded(
+                                                flex: 4,
+                                                child: BottomSection(
+                                                  checkoutController:
+                                                      checkoutController,
+                                                  total: total,
+                                                  module: module!,
+                                                  subTotal: subTotal,
+                                                  discount: discount,
+                                                  couponController:
+                                                      couponController,
+                                                  taxIncluded: taxIncluded,
+                                                  tax: tax,
+                                                  deliveryCharge:
+                                                      deliveryCharge,
+                                                  todayClosed: todayClosed,
+                                                  tomorrowClosed:
+                                                      tomorrowClosed,
+                                                  orderAmount: orderAmount,
+                                                  maxCodOrderAmount:
+                                                      maxCodOrderAmount,
+                                                  storeId: widget.storeId,
+                                                  taxPercent: _taxPercent,
+                                                  price: price,
+                                                  addOns: addOns,
+                                                  checkoutButton:
+                                                      _orderPlaceButton(
+                                                    checkoutController,
+                                                    todayClosed,
+                                                    tomorrowClosed,
+                                                    orderAmount,
+                                                    deliveryCharge,
+                                                    tax,
+                                                    discount,
+                                                    total,
+                                                    maxCodOrderAmount,
+                                                  ),
+                                                )),
+                                          ]),
+                                    )
+                                  : Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                          TopSection(
+                                            checkoutController:
+                                                checkoutController,
+                                            charge: originalCharge,
+                                            deliveryCharge: deliveryCharge,
+                                            addressList: addressList,
+                                            tomorrowClosed: tomorrowClosed,
+                                            todayClosed: todayClosed,
+                                            module: module,
+                                            price: price,
+                                            discount: discount,
+                                            addOns: addOns,
+                                            address: address,
+                                            cartList: _cartList,
+                                            isCashOnDeliveryActive:
+                                                _isCashOnDeliveryActive!,
+                                            isDigitalPaymentActive:
+                                                _isDigitalPaymentActive!,
+                                            isWalletActive: _isWalletActive,
+                                            storeId: widget.storeId,
+                                            total: total,
+                                            isOfflinePaymentActive:
+                                                _isOfflinePaymentActive,
+                                            guestNameTextEditingController:
+                                                guestContactPersonNameController,
+                                            guestNumberTextEditingController:
+                                                guestContactPersonNumberController,
+                                            guestNumberNode: guestNumberNode,
+                                            guestEmailController:
+                                                guestEmailController,
+                                            guestEmailNode: guestEmailNode,
+                                            tooltipController1:
+                                                tooltipController1,
+                                            tooltipController2:
+                                                tooltipController2,
+                                            dmTipsTooltipController:
+                                                tooltipController3,
+                                          ),
+                                          BottomSection(
+                                            checkoutController:
+                                                checkoutController,
+                                            total: total,
+                                            module: module!,
+                                            subTotal: subTotal,
+                                            discount: discount,
+                                            couponController: couponController,
+                                            taxIncluded: taxIncluded,
+                                            tax: tax,
+                                            deliveryCharge: deliveryCharge,
+                                            todayClosed: todayClosed,
+                                            tomorrowClosed: tomorrowClosed,
+                                            orderAmount: orderAmount,
+                                            maxCodOrderAmount:
+                                                maxCodOrderAmount,
+                                            storeId: widget.storeId,
+                                            taxPercent: _taxPercent,
+                                            price: price,
+                                            addOns: addOns,
+                                            checkoutButton: _orderPlaceButton(
+                                              checkoutController,
+                                              todayClosed,
+                                              tomorrowClosed,
+                                              orderAmount,
+                                              deliveryCharge,
+                                              tax,
+                                              discount,
+                                              total,
+                                              maxCodOrderAmount,
+                                            ),
+                                          )
+                                        ]),
+                            )),
+                          )),
+                          ResponsiveHelper.isDesktop(context)
+                              ? const SizedBox()
+                              : Container(
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).cardColor,
+                                    boxShadow: [
+                                      BoxShadow(
+                                          color: Theme.of(context)
+                                              .primaryColor
+                                              .withOpacity(0.1),
+                                          blurRadius: 10)
+                                    ],
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal:
+                                                Dimensions.paddingSizeLarge,
+                                            vertical: Dimensions
+                                                .paddingSizeExtraSmall),
+                                        child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                checkoutController.isPartialPay
+                                                    ? 'due_payment'.tr
+                                                    : 'total_amount'.tr,
+                                                style: robotoMedium.copyWith(
+                                                    fontSize: Dimensions
+                                                        .fontSizeLarge,
+                                                    color: Theme.of(context)
+                                                        .primaryColor),
+                                              ),
+                                              PriceConverter
+                                                  .convertAnimationPrice(
+                                                checkoutController
+                                                    .viewTotalPrice,
+                                                textStyle:
+                                                    robotoMedium.copyWith(
+                                                        fontSize: Dimensions
+                                                            .fontSizeLarge,
+                                                        color: Theme.of(context)
+                                                            .primaryColor),
+                                              ),
+                                            ]),
+                                      ),
+                                      _orderPlaceButton(
+                                          checkoutController,
+                                          todayClosed,
+                                          tomorrowClosed,
+                                          orderAmount,
+                                          deliveryCharge,
+                                          tax,
+                                          discount,
+                                          total,
+                                          maxCodOrderAmount),
+                                    ],
+                                  ),
+                                ),
+                        ],
+                      )
+                    : const CheckoutScreenShimmerView();
+              });
+            })
+          : NotLoggedInScreen(callBack: (value) {
+              initCall();
+              setState(() {});
+            }),
+    );
   }
 }

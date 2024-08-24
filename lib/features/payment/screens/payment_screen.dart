@@ -1,18 +1,24 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:yehlo_User/features/payment/screens/PhonePayOrderScreen.dart';
+import 'package:yehlo_User/features/payment/screens/SuccessScreen.dart';
 import 'package:yehlo_User/features/splash/controllers/splash_controller.dart';
 import 'package:yehlo_User/features/order/controllers/order_controller.dart';
 import 'package:yehlo_User/features/order/domain/models/order_model.dart';
 import 'package:yehlo_User/features/location/domain/models/zone_response_model.dart';
 import 'package:yehlo_User/helper/address_helper.dart';
+import 'package:yehlo_User/helper/route_helper.dart';
 import 'package:yehlo_User/util/app_constants.dart';
 import 'package:yehlo_User/util/dimensions.dart';
 import 'package:yehlo_User/common/widgets/custom_app_bar.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:yehlo_User/features/checkout/widgets/payment_failed_dialog.dart';
 import 'package:yehlo_User/features/wallet/widgets/fund_payment_dialog_widget.dart';
+import 'package:http/http.dart' as http;
 
 class PaymentScreen extends StatefulWidget {
   final OrderModel orderModel;
@@ -21,39 +27,103 @@ class PaymentScreen extends StatefulWidget {
   final String paymentMethod;
   final String guestId;
   final String contactNumber;
-  const PaymentScreen({super.key, required this.orderModel, required this.isCashOnDelivery, this.addFundUrl, required this.paymentMethod,
-    required this.guestId, required this.contactNumber});
+  const PaymentScreen(
+      {super.key,
+      required this.orderModel,
+      required this.isCashOnDelivery,
+      this.addFundUrl,
+      required this.paymentMethod,
+      required this.guestId,
+      required this.contactNumber});
 
   @override
   PaymentScreenState createState() => PaymentScreenState();
 }
 
 class PaymentScreenState extends State<PaymentScreen> {
+  final OrderPhonePayScreen _orderPhonePayService = OrderPhonePayScreen();
   late String selectedUrl;
   double value = 0.0;
   final bool _isLoading = true;
   PullToRefreshController? pullToRefreshController;
-  late MyInAppBrowser browser;
+  // late MyInAppBrowser browser;
   double? _maximumCodOrderAmount;
+  String? merchantSdkId;
 
   @override
   void initState() {
     super.initState();
 
-    if(widget.addFundUrl == null  || (widget.addFundUrl != null && widget.addFundUrl!.isEmpty)){
-      selectedUrl = '${AppConstants.baseUrl}/payment-mobile?customer_id=${widget.orderModel.userId == 0 ? widget.guestId : widget.orderModel.userId}&order_id=${widget.orderModel.id}&payment_method=${widget.paymentMethod}';
-    } else{
+    // Generate a random merchantSdkId
+    merchantSdkId = _generateRandomMerchantSdkId();
+
+    // Check if addFundUrl is null or empty and construct selectedUrl accordingly
+    if (widget.addFundUrl == null || (widget.addFundUrl != null && widget.addFundUrl!.isEmpty)) {
+      selectedUrl = '${AppConstants.baseUrl}/payment-mobile-sdk?customer_id=${widget.orderModel.userId == 0 ? widget.guestId : widget.orderModel.userId}&order_id=${widget.orderModel.id}&payment_method=${widget.paymentMethod}&merchant_sdk_id=$merchantSdkId';
+    } else {
       selectedUrl = widget.addFundUrl!;
     }
 
     _initData();
+    _initiatePhonePePayment();
+  }
+
+  String _generateRandomMerchantSdkId() {
+    Random random = Random();
+    int randomNumber =
+        random.nextInt(999999999); // Generates a random number up to 9 digits
+    return 'ORDER_$randomNumber';
+  }
+
+  void _initiatePhonePePayment() async {
+    try {
+      // Initialize the PhonePe SDK
+      await _orderPhonePayService.initPhonePeSdk();
+
+      // Prepare the necessary parameters
+      double? amount = widget
+          .orderModel.orderAmount; // Example amount, replace with actual value
+      String paymentMethod = widget.paymentMethod;
+
+      String orderId = widget.orderModel.id
+          .toString(); // Assuming orderModel has an id field
+      String contactNumber = widget.contactNumber;
+
+      // Initiate the PhonePe Payment
+      var result = await _orderPhonePayService.initiatePhonePePayment(
+        amount!,
+        paymentMethod,
+        merchantSdkId!,
+        contactNumber,
+      );
+
+      // Handle the result
+      if (result is String && result.contains("Success")) {
+        // Payment successful, proceed accordingly
+        /* Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => SuccessScreen()),
+        ); */
+
+        Get.offNamed(RouteHelper.getOrderSuccessRoute(orderId, contactNumber));
+
+        print("Payment successful: $result");
+      } else {
+        // Handle payment failureqw
+        print("Payment failed: $result");
+      }
+    } catch (e) {
+      print('Error in payment process: $e');
+    }
   }
 
   void _initData() async {
-    if(widget.addFundUrl == null  || (widget.addFundUrl != null && widget.addFundUrl!.isEmpty)){
-      for(ZoneData zData in AddressHelper.getUserAddressFromSharedPref()!.zoneData!) {
-        for(Modules m in zData.modules!) {
-          if(m.id == Get.find<SplashController>().module!.id) {
+    if (widget.addFundUrl == null ||
+        (widget.addFundUrl != null && widget.addFundUrl!.isEmpty)) {
+      for (ZoneData zData
+          in AddressHelper.getUserAddressFromSharedPref()!.zoneData!) {
+        for (Modules m in zData.modules!) {
+          if (m.id == Get.find<SplashController>().module!.id) {
             _maximumCodOrderAmount = m.pivot!.maximumCodOrderAmount;
             break;
           }
@@ -61,17 +131,28 @@ class PaymentScreenState extends State<PaymentScreen> {
       }
     }
 
-    browser = MyInAppBrowser(orderID: widget.orderModel.id.toString(), orderType: widget.orderModel.orderType, orderAmount: widget.orderModel.orderAmount, maxCodOrderAmount: _maximumCodOrderAmount, isCashOnDelivery: widget.isCashOnDelivery, addFundUrl: widget.addFundUrl, contactNumber: widget.contactNumber);
+    /* browser = MyInAppBrowser(
+        orderID: widget.orderModel.id.toString(),
+        orderType: widget.orderModel.orderType,
+        orderAmount: widget.orderModel.orderAmount,
+        maxCodOrderAmount: _maximumCodOrderAmount,
+        isCashOnDelivery: widget.isCashOnDelivery,
+        addFundUrl: widget.addFundUrl,
+        contactNumber: widget.contactNumber); */
 
-    if(!GetPlatform.isIOS) {
+    if (!GetPlatform.isIOS) {
       await InAppWebViewController.setWebContentsDebuggingEnabled(true);
 
-      bool swAvailable = await WebViewFeature.isFeatureSupported(WebViewFeature.SERVICE_WORKER_BASIC_USAGE);
-      bool swInterceptAvailable = await WebViewFeature.isFeatureSupported(WebViewFeature.SERVICE_WORKER_SHOULD_INTERCEPT_REQUEST);
+      bool swAvailable = await WebViewFeature.isFeatureSupported(
+          WebViewFeature.SERVICE_WORKER_BASIC_USAGE);
+      bool swInterceptAvailable = await WebViewFeature.isFeatureSupported(
+          WebViewFeature.SERVICE_WORKER_SHOULD_INTERCEPT_REQUEST);
 
       if (swAvailable && swInterceptAvailable) {
-        ServiceWorkerController serviceWorkerController = ServiceWorkerController.instance();
-        await serviceWorkerController.setServiceWorkerClient(ServiceWorkerClient(
+        ServiceWorkerController serviceWorkerController =
+            ServiceWorkerController.instance();
+        await serviceWorkerController
+            .setServiceWorkerClient(ServiceWorkerClient(
           shouldInterceptRequest: (request) async {
             return null;
           },
@@ -79,13 +160,40 @@ class PaymentScreenState extends State<PaymentScreen> {
       }
     }
 
-    await browser.openUrlRequest(
+    Future<void> PostMerchantId(String selectedUrl) async {
+      try {
+        // Asynchronously send a GET request to the URL
+        final response = await http.get(Uri.parse(selectedUrl));
+
+        // Check if the response is successful
+        if (response.statusCode == 200) {
+          // Successfully received a response
+          var responseData = json.decode(response.body);
+          print('Response data: $responseData');
+
+          // You can process the response here or return it
+          return responseData;
+        } else {
+          // Handle error response
+          print('Failed to load data: ${response.statusCode}');
+        }
+      } catch (e) {
+        // Handle exception during the request
+        print('Error occurred: $e');
+      }
+    }
+
+    PostMerchantId(selectedUrl);
+
+    /* await browser.openUrlRequest(
       urlRequest: URLRequest(url: WebUri(selectedUrl)),
       settings: InAppBrowserClassSettings(
-        webViewSettings: InAppWebViewSettings(useShouldOverrideUrlLoading: true, useOnLoadResource: true),
-        browserSettings: InAppBrowserSettings(hideUrlBar: true, hideToolbarTop: GetPlatform.isAndroid),
+        webViewSettings: InAppWebViewSettings(
+            useShouldOverrideUrlLoading: true, useOnLoadResource: true),
+        browserSettings: InAppBrowserSettings(
+            hideUrlBar: true, hideToolbarTop: GetPlatform.isAndroid),
       ),
-    );
+    ); */
   }
 
   @override
@@ -97,15 +205,20 @@ class PaymentScreenState extends State<PaymentScreen> {
       },
       child: Scaffold(
         backgroundColor: Theme.of(context).primaryColor,
-        appBar: CustomAppBar(title: 'payment'.tr, onBackPressed: () => _exitApp()),
+        appBar:
+            CustomAppBar(title: 'payment'.tr, onBackPressed: () => _exitApp()),
         body: Center(
           child: SizedBox(
             width: Dimensions.webMaxWidth,
             child: Stack(
               children: [
-                _isLoading ? Center(
-                  child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor)),
-                ) : const SizedBox.shrink(),
+                _isLoading
+                    ? Center(
+                        child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                Theme.of(context).primaryColor)),
+                      )
+                    : const SizedBox.shrink(),
               ],
             ),
           ),
@@ -115,16 +228,21 @@ class PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<bool?> _exitApp() async {
-    if(widget.addFundUrl == null  || (widget.addFundUrl != null && widget.addFundUrl!.isEmpty)){
-      return Get.dialog(PaymentFailedDialog(orderID: widget.orderModel.id.toString(), orderAmount: widget.orderModel.orderAmount, maxCodOrderAmount: _maximumCodOrderAmount, orderType: widget.orderModel.orderType, isCashOnDelivery: widget.isCashOnDelivery));
-    } else{
+    if (widget.addFundUrl == null ||
+        (widget.addFundUrl != null && widget.addFundUrl!.isEmpty)) {
+      return Get.dialog(PaymentFailedDialog(
+          orderID: widget.orderModel.id.toString(),
+          orderAmount: widget.orderModel.orderAmount,
+          maxCodOrderAmount: _maximumCodOrderAmount,
+          orderType: widget.orderModel.orderType,
+          isCashOnDelivery: widget.isCashOnDelivery));
+    } else {
       return Get.dialog(const FundPaymentDialogWidget());
     }
   }
-
 }
 
-class MyInAppBrowser extends InAppBrowser {
+/* class MyInAppBrowser extends InAppBrowser {
   final String orderID;
   final String? orderType;
   final double? orderAmount;
@@ -132,8 +250,16 @@ class MyInAppBrowser extends InAppBrowser {
   final bool isCashOnDelivery;
   final String? addFundUrl;
   final String? contactNumber;
-  MyInAppBrowser({required this.orderID, required this.orderType, required this.orderAmount, required this.maxCodOrderAmount, required this.isCashOnDelivery,
-    this.addFundUrl, this.contactNumber, super.windowId, super.initialUserScripts});
+  MyInAppBrowser(
+      {required this.orderID,
+      required this.orderType,
+      required this.orderAmount,
+      required this.maxCodOrderAmount,
+      required this.isCashOnDelivery,
+      this.addFundUrl,
+      this.contactNumber,
+      super.windowId,
+      super.initialUserScripts});
 
   final bool _canRedirect = true;
 
@@ -149,10 +275,14 @@ class MyInAppBrowser extends InAppBrowser {
     if (kDebugMode) {
       print("\n\nStarted: $url\n\n");
     }
-    Get.find<OrderController>().paymentRedirect(url: url.toString(), canRedirect: _canRedirect, onClose: () => close(), addFundUrl: addFundUrl, orderID: orderID, contactNumber: contactNumber);
-
+    Get.find<OrderController>().paymentRedirect(
+        url: url.toString(),
+        canRedirect: _canRedirect,
+        onClose: () => close(),
+        addFundUrl: addFundUrl,
+        orderID: orderID,
+        contactNumber: contactNumber);
   }
-
 
   @override
   Future onLoadStop(url) async {
@@ -160,7 +290,13 @@ class MyInAppBrowser extends InAppBrowser {
     if (kDebugMode) {
       print("\n\nStopped: $url\n\n");
     }
-    Get.find<OrderController>().paymentRedirect(url: url.toString(), canRedirect: _canRedirect, onClose: () => close(), addFundUrl: addFundUrl, orderID: orderID, contactNumber: contactNumber);
+    Get.find<OrderController>().paymentRedirect(
+        url: url.toString(),
+        canRedirect: _canRedirect,
+        onClose: () => close(),
+        addFundUrl: addFundUrl,
+        orderID: orderID,
+        contactNumber: contactNumber);
   }
 
   @override
@@ -192,7 +328,8 @@ class MyInAppBrowser extends InAppBrowser {
   }
 
   @override
-  Future<NavigationActionPolicy> shouldOverrideUrlLoading(navigationAction) async {
+  Future<NavigationActionPolicy> shouldOverrideUrlLoading(
+      navigationAction) async {
     if (kDebugMode) {
       print("\n\nOverride ${navigationAction.request.url}\n\n");
     }
@@ -202,7 +339,8 @@ class MyInAppBrowser extends InAppBrowser {
   @override
   void onLoadResource(resource) {
     if (kDebugMode) {
-      print("Started at: ${resource.startTime}ms ---> duration: ${resource.duration}ms ${resource.url ?? ''}");
+      print(
+          "Started at: ${resource.startTime}ms ---> duration: ${resource.duration}ms ${resource.url ?? ''}");
     }
   }
 
@@ -210,12 +348,11 @@ class MyInAppBrowser extends InAppBrowser {
   void onConsoleMessage(consoleMessage) {
     if (kDebugMode) {
       print("""
-    console output:
+      console output:
       message: ${consoleMessage.message}
       messageLevel: ${consoleMessage.messageLevel.toValue()}
-   """);
+      """);
     }
   }
-
-
 }
+ */

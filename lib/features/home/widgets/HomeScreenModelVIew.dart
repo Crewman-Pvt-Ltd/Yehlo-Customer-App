@@ -29,22 +29,30 @@ class _HomeScreenModuleViewState extends State<HomeScreenModuleView> {
       widget.splashController.moduleList != null
           ? widget.splashController.moduleList!.isNotEmpty
               ? SizedBox(
-                  height: 130, // Adjust height as needed
+                  height: 120, // Adjust height as needed
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
                     itemCount: widget.splashController.moduleList!.length,
                     itemBuilder: (context, index) {
                       return Container(
-                        width: 87, // Increased width for a higher aspect ratio
+                        width: 84, // Increased width for a higher aspect ratio
                         margin: const EdgeInsets.only(
                             right: Dimensions.paddingSizeSmall),
                         decoration: BoxDecoration(
                           borderRadius:
                               BorderRadius.circular(Dimensions.radiusDefault),
                           color: selectedIndex == index
-                              ? Color(0xFFE3E0E0) // Highlight selected module
+                              ? Color(0xFF44287d) // Highlight selected module
                               : Theme.of(context).cardColor,
+                          border: selectedIndex == index
+                              ? null // No border when selected
+                              : Border.all(
+                                  
+                                  color: Colors
+                                      .grey.shade300, // Set the border color when unselected
+                                  width: 1.0, // Set the border width
+                                ),
                         ),
                         child: CustomInkWell(
                           onTap: () {
@@ -68,7 +76,7 @@ class _HomeScreenModuleViewState extends State<HomeScreenModuleView> {
                                 ),
                               ),
                               const SizedBox(
-                                  height: Dimensions.paddingSizeSmall),
+                                  height: Dimensions.paddingSizeExtraSmall),
                               Text(
                                 widget.splashController.moduleList![index]
                                     .moduleName!,
@@ -76,8 +84,12 @@ class _HomeScreenModuleViewState extends State<HomeScreenModuleView> {
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: robotoMedium.copyWith(
-                                    fontSize: Dimensions
-                                        .fontSizeDefault), // Increased text size
+                                  fontSize: 12, // Increased text size
+                                  color: selectedIndex == index
+                                      ? Colors
+                                          .white // Set text color to white when selected
+                                      : Colors.black, // Default text color
+                                ),
                               ),
                             ],
                           ),

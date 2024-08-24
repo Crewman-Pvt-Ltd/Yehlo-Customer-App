@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:yehlo_User/common/models/transaction_model.dart';
@@ -22,10 +24,20 @@ class WalletRepository implements WalletRepositoryInterface{
       {
         "amount": amount,
         "payment_method": paymentMethod,
-        "payment_platform": GetPlatform.isWeb ? 'web' : '',
+        "payment_platform": GetPlatform.isWeb ? 'web' : 'mobile',
         "callback": '$protocol//$hostname${RouteHelper.wallet}',
+        "merchant_sdk_id": "MT${getRandomNumber()}",
       }
     );
+  }
+
+  String getRandomNumber() {
+    Random random = Random();
+    String randomNumber = '';
+    for (int i = 0; i < 15; i++) {
+      randomNumber += random.nextInt(10).toString();
+    }
+    return randomNumber;
   }
 
   @override

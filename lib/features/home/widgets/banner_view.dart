@@ -112,7 +112,7 @@ class BannerView extends StatelessWidget {
             const SizedBox(height: Dimensions.paddingSizeExtraSmall),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: bannerList.map((bnr) {
+              children: bannerList.map((bnr) {  
                 int index = bannerList.indexOf(bnr);
                 int totalBanner = bannerList.length;
                 return Padding(

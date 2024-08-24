@@ -1,14 +1,13 @@
 {
   "project_info": {
-    "project_number": "440975246236",
-    "firebase_url": "https://yehlo-4921f-default-rtdb.asia-southeast1.firebasedatabase.app",
-    "project_id": "yehlo-4921f",
-    "storage_bucket": "yehlo-4921f.appspot.com"
+    "project_number": "589252079902",
+    "project_id": "yehlo-7b4d8",
+    "storage_bucket": "yehlo-7b4d8.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:440975246236:android:be37399553c256b6793e59",
+        "mobilesdk_app_id": "1:589252079902:android:251f65ef5e9f8802ce190f",
         "android_client_info": {
           "package_name": "com.yehlo_User_app"
         }
@@ -16,26 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBqThtl_j3Egc7w1jofsutn6tGterN2ixo"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:440975246236:android:062a3e0b467bd401793e59",
-        "android_client_info": {
-          "package_name": "com.yehlo_seller_app"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyBqThtl_j3Egc7w1jofsutn6tGterN2ixo"
+          "current_key": "AIzaSyAUg9QXu8App_tDP5jXBShd9ShwreGtv-o"
         }
       ],
       "services": {

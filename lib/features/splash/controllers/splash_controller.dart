@@ -16,48 +16,49 @@ import 'package:yehlo_User/features/home/screens/home_screen.dart';
 import 'package:yehlo_User/features/splash/domain/services/splash_service_interface.dart';
 
 class SplashController extends GetxController implements GetxService {
-  final SplashServiceInterface splashServiceInterface;
   SplashController({required this.splashServiceInterface});
 
-  ConfigModel? _configModel;
-  ConfigModel? get configModel => _configModel;
-
-  bool _firstTimeConnectionCheck = true;
-  bool get firstTimeConnectionCheck => _firstTimeConnectionCheck;
-
-  bool _hasConnection = true;
-  bool get hasConnection => _hasConnection;
-
-  ModuleModel? _module;
-  ModuleModel? get module => _module;
+  final SplashServiceInterface splashServiceInterface;
 
   ModuleModel? _cacheModule;
+  ConfigModel? _configModel;
+  Map<String, dynamic>? _data = {};
+  bool _firstTimeConnectionCheck = true;
+  bool _hasConnection = true;
+  bool _isLoading = false;
+  bool _isRefreshing = false;
+  LandingModel? _landingModel;
+  ModuleModel? _module;
+  int _moduleIndex = 0;
+  List<ModuleModel>? _moduleList;
+  bool _savedCookiesData = false;
+  int _selectedModuleIndex = 0;
+  bool _webSuggestedLocation = false;
+
+  ConfigModel? get configModel => _configModel;
+
+  bool get firstTimeConnectionCheck => _firstTimeConnectionCheck;
+
+  bool get hasConnection => _hasConnection;
+
+  ModuleModel? get module => _module;
+
   ModuleModel? get cacheModule => _cacheModule;
 
-  List<ModuleModel>? _moduleList;
   List<ModuleModel>? get moduleList => _moduleList;
 
-  int _moduleIndex = 0;
   int get moduleIndex => _moduleIndex;
 
-  Map<String, dynamic>? _data = {};
-
-  bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  int _selectedModuleIndex = 0;
   int get selectedModuleIndex => _selectedModuleIndex;
 
-  LandingModel? _landingModel;
   LandingModel? get landingModel => _landingModel;
 
-  bool _savedCookiesData = false;
   bool get savedCookiesData => _savedCookiesData;
 
-  bool _webSuggestedLocation = false;
   bool get webSuggestedLocation => _webSuggestedLocation;
 
-  bool _isRefreshing = false;
   bool get isRefreshing => _isRefreshing;
 
   DateTime get currentTime => DateTime.now();

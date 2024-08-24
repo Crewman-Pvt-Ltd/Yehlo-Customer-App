@@ -144,8 +144,32 @@ class StoreCardWithDistance extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
                       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                        
+
+                        CustomButton(
+                          height: 30, width: fromAllStore? 43 : 90,
+                          radius: Dimensions.radiusSmall,
+                          onPressed: () {
+                            if(Get.find<SplashController>().moduleList != null) {
+                              for(ModuleModel module in Get.find<SplashController>().moduleList!) {
+                                if(module.id == store.moduleId) {
+                                  Get.find<SplashController>().setModule(module);
+                                  break;
+                                }
+                              }
+                            }
+                            Get.toNamed(
+                              RouteHelper.getStoreRoute(id: store.id, page: 'store'),
+                              arguments: StoreScreen(store: store, fromModule: false),
+                            );
+                          },
+                          buttonText: 'View'.tr,
+                          color: Theme.of(context).primaryColor,
+                          textColor: Theme.of(context).cardColor,
+                          fontSize: Dimensions.fontSizeSmall,
+                        ),
                         Container(
-                          padding: const EdgeInsets.symmetric(vertical: 3, horizontal: Dimensions.paddingSizeSmall),
+                          padding:  EdgeInsets.symmetric(vertical: 3, horizontal: fromAllStore ? 10 : 22),
                           decoration: BoxDecoration(
                             color: Theme.of(context).primaryColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
@@ -162,31 +186,8 @@ class StoreCardWithDistance extends StatelessWidget {
                             ),
                             const SizedBox(width: Dimensions.paddingSizeExtraSmall),
 
-                            Text('from_you'.tr, style: robotoRegular.copyWith(color: Theme.of(context).primaryColor, fontSize: Dimensions.fontSizeExtraSmall)),
+                           // Text('from_you'.tr, style: robotoRegular.copyWith(color: Theme.of(context).primaryColor, fontSize: Dimensions.fontSizeExtraSmall)),
                           ]),
-                        ),
-
-                        CustomButton(
-                          height: 30, width: fromAllStore? 70 : 65,
-                          radius: Dimensions.radiusSmall,
-                          onPressed: () {
-                            if(Get.find<SplashController>().moduleList != null) {
-                              for(ModuleModel module in Get.find<SplashController>().moduleList!) {
-                                if(module.id == store.moduleId) {
-                                  Get.find<SplashController>().setModule(module);
-                                  break;
-                                }
-                              }
-                            }
-                            Get.toNamed(
-                              RouteHelper.getStoreRoute(id: store.id, page: 'store'),
-                              arguments: StoreScreen(store: store, fromModule: false),
-                            );
-                          },
-                          buttonText: 'visit'.tr,
-                          color: Theme.of(context).primaryColor,
-                          textColor: Theme.of(context).cardColor,
-                          fontSize: Dimensions.fontSizeSmall,
                         ),
                       ]),
                     ),

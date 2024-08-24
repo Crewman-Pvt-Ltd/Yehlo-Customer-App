@@ -174,9 +174,11 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
                             bool isSelected = checkoutController.paymentMethodIndex == 2 && Get.find<SplashController>().configModel!.activePaymentMethodList![index].getWay! == checkoutController.digitalPaymentName;
                           return InkWell(
                             onTap: (){
+                             // print('TAPPED');
                               checkoutController.setPaymentMethod(2);
                               checkoutController.changeDigitalPaymentName(Get.find<SplashController>().configModel!.activePaymentMethodList![index].getWay!);
-                            },
+                            
+                             },
                             child: Container(
                               decoration: BoxDecoration(
                                   color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.1) : Colors.transparent,

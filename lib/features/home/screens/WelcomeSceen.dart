@@ -1,12 +1,15 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:yehlo_User/features/home/widgets/ServiceModelView.dart';
 import 'package:yehlo_User/features/home/widgets/module_view.dart';
 import 'package:yehlo_User/features/splash/controllers/splash_controller.dart';
 import 'package:yehlo_User/helper/responsive_helper.dart';
 import 'package:yehlo_User/util/app_constants.dart';
+import 'package:yehlo_User/util/dimensions.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -20,14 +23,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   String? headerTitle;
   String? headerSubtitle;
   String? headerTagLine;
+  List<String>? slideBanners;
 
   @override
   void initState() {
     super.initState();
-    fetchData();
+    FetchFirstBanner();
   }
 
-  Future<void> fetchData() async {
+  Future<void> FetchFirstBanner() async {
     const String apiUrl = 'https://yehlo.app/api/v1/react-landing-page';
     try {
       final response = await http.get(Uri.parse(apiUrl));
@@ -40,6 +44,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           headerTitle = data['header_title'];
           headerSubtitle = data['header_sub_title'];
           headerTagLine = data['header_tag_line'];
+          slideBanners = List<String>.from(data['promotion_banners'].map(
+              (banner) =>
+                  data['base_urls']['promotional_banner_url'] +
+                  '/' +
+                  banner['img']));
         });
       } else {
         throw Exception('Failed to load data');
@@ -63,20 +72,20 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     Container(
                       width: double.infinity,
                       height:
-                          180, // Setting a fixed height to avoid unbounded height issue
+                          170, // Setting a fixed height to avoid unbounded height issue
                       // color: Colors.grey.withOpacity(0.7),
                       child: Stack(
                         children: [
                           // ColorFiltered(
-                          //   colorFilter: ColorFilter.mode(
-                          //     Colors.black.withOpacity(0.3),
-                          //     BlendMode.darken,
+                          //    colorFilter: ColorFilter.mode(
+                          //    Colors.black.withOpacity(0.3),
+                          //    BlendMode.darken,
                           //   ),
                           CachedNetworkImage(
                             imageUrl: bannerUrl!,
                             fit: BoxFit.cover,
                             width: double.infinity,
-                            height: 330, // Match the height of the container
+                            height: 332, // Match the height of the container
                             placeholder: (context, url) => const Center(
                                 child: CircularProgressIndicator()),
                             errorWidget: (context, url, error) =>
@@ -85,8 +94,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
                           Positioned(
                             bottom: 20,
-                            left: 20,
-                            top: 18,
+                            left: 17,
+                            top: 10,
                             right: 180,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,9 +139,69 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       padding: EdgeInsets.symmetric(horizontal: 20),
                       child: Divider(),
                     ),
+
                     ModuleView(splashController: splashController),
+                    // const Padding(
+                    //   padding: EdgeInsets.symmetric(horizontal: 20),
+                    //   child: Divider(),
+                    // ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text('Services', style: TextStyle(fontSize: 16, color: Colors.black), ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Divider(),
+                    ),
+                    SizedBox(height: 10,),
+                    ServiceModelView(splashController: splashController),
                     const SizedBox(
-                      height: 70,
+                      height: 20,
+                    ),
+                    if (slideBanners != null && slideBanners!.isNotEmpty)
+                      CarouselSlider(
+                        options: CarouselOptions(
+                          height: 130,
+                          autoPlay: true,
+                          enlargeCenterPage: true,
+                          autoPlayInterval: const Duration(seconds: 5),
+                          viewportFraction: 0.7,
+                          aspectRatio: 1.0,
+                        ),
+                        items: slideBanners!.map((banner) {
+                          return Builder(
+                            builder: (BuildContext context) {
+                              return Container(
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).cardColor,
+                                  borderRadius: BorderRadius.circular(
+                                      Dimensions.radiusDefault),
+                                  boxShadow: [
+                                    BoxShadow(
+                                        color: Colors
+                                            .grey[Get.isDarkMode ? 800 : 200]!,
+                                        spreadRadius: 1,
+                                        blurRadius: 5)
+                                  ],
+                                ),
+                                width: MediaQuery.of(context).size.width,
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 3.0),
+                                child: CachedNetworkImage(
+                                  imageUrl: banner,
+                                  fit: BoxFit.fill,
+                                  placeholder: (context, url) => const Center(
+                                      child: CircularProgressIndicator()),
+                                  errorWidget: (context, url, error) =>
+                                      const Icon(Icons.error),
+                                ),
+                              );
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    SizedBox(
+                      height: 200,
                     ),
                   ],
                 ),

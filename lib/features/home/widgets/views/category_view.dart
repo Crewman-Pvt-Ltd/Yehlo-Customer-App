@@ -80,20 +80,22 @@ class CategoryView extends StatelessWidget {
                                     final categoryList =
                                         categoryController.categoryList ?? [];
                                     final int itemCount =
-                                        categoryList.length > 16
-                                            ? 16
-                                            : categoryList.length;
+                                        categoryList.length > 12
+                                            ? 12
+                                            : categoryList.length; // Limit to 3 rows
                                     final int rowCount = (itemCount / 4).ceil();
 
                                     return LayoutBuilder(
                                       builder: (context, constraints) {
                                         final double maxHeightPerRow =
                                             constraints.maxWidth /
-                                                2.9; // Adjust according to width
+                                                2.6; // Adjust according to width
 
                                         return IntrinsicHeight(
                                           child: SizedBox(
                                             height: maxHeightPerRow * rowCount,
+                                            width: double
+                                                .infinity, // Ensure the grid takes the full width
                                             child: categoryList.isNotEmpty
                                                 ? GridView.builder(
                                                     physics:
@@ -109,11 +111,11 @@ class CategoryView extends StatelessWidget {
                                                     gridDelegate:
                                                         const SliverGridDelegateWithFixedCrossAxisCount(
                                                       crossAxisCount: 4,
-                                                      mainAxisSpacing: 65,
+                                                      mainAxisSpacing: 12,
                                                       crossAxisSpacing:
                                                           Dimensions
                                                               .paddingSizeSmall,
-                                                      childAspectRatio: 1,
+                                                      childAspectRatio: 0.7,
                                                     ),
                                                     itemBuilder:
                                                         (context, index) {
@@ -128,16 +130,9 @@ class CategoryView extends StatelessWidget {
                                                         ),
                                                         child: InkWell(
                                                           onTap: () {
-                                                            if (index == 15 &&
-                                                                itemCount >
-                                                                    16) {
-                                                              Get.toNamed(
-                                                                  RouteHelper
-                                                                      .getCategoryRoute());
-                                                            } else {
-                                                              Get.toNamed(
-                                                                  RouteHelper
-                                                                      .getCategoryItemRoute(
+                                                            Get.toNamed(
+                                                              RouteHelper
+                                                                  .getCategoryItemRoute(
                                                                 categoryController
                                                                     .categoryList![
                                                                         index]
@@ -146,18 +141,26 @@ class CategoryView extends StatelessWidget {
                                                                     .categoryList![
                                                                         index]
                                                                     .name!,
-                                                              ));
-                                                            }
+                                                              ),
+                                                            );
                                                           },
                                                           child: Column(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .center,
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .center,
                                                             children: [
                                                               ClipRRect(
                                                                 borderRadius:
                                                                     BorderRadius.circular(
                                                                         Dimensions
                                                                             .radiusSmall),
-                                                                child: CustomImage(
-                                                                  image: '${Get.find<SplashController>().configModel!.baseUrls!.categoryImageUrl}/${categoryController.categoryList![index].image}',
+                                                                child:
+                                                                    CustomImage(
+                                                                  image:
+                                                                      '${Get.find<SplashController>().configModel!.baseUrls!.categoryImageUrl}/${categoryController.categoryList![index].image}',
                                                                   fit: BoxFit
                                                                       .cover,
                                                                 ),
@@ -169,14 +172,16 @@ class CategoryView extends StatelessWidget {
                                                                     .categoryList![
                                                                         index]
                                                                     .name!,
-                                                                style: robotoMedium.copyWith(
-                                                                    fontSize:
-                                                                        11,
-                                                                    color: Theme.of(
-                                                                            context)
-                                                                        .textTheme
-                                                                        .bodyMedium!
-                                                                        .color),
+                                                                style:
+                                                                    robotoMedium
+                                                                        .copyWith(
+                                                                  fontSize: 11,
+                                                                  color: Theme.of(
+                                                                          context)
+                                                                      .textTheme
+                                                                      .bodyMedium!
+                                                                      .color,
+                                                                ),
                                                                 maxLines:
                                                                     Get.find<LocalizationController>()
                                                                             .isLtr
@@ -226,10 +231,15 @@ class CategoryView extends StatelessWidget {
                                                   ),
                                                 );
                                               },
+                                              child: const Text(
+                                                'See All>',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0XFF010d75),
+                                                ),
+                                              ),
                                             ),
-                                            const SizedBox(
-                                              height: 10,
-                                            )
+                                            const SizedBox(height: 10),
                                           ],
                                         )
                                       : CategoryShimmer(

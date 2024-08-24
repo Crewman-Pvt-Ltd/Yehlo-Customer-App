@@ -104,8 +104,7 @@ class AppConstants {
   static const String vehicleListUri = '/api/v1/vehicles/list';
   static const String taxiCouponUri = '/api/v1/coupon/list/taxi';
   static const String taxiBannerUri = '/api/v1/banners/taxi';
-  static const String topRatedVehiclesListUri =
-      '/api/v1/vehicles/top-rated/list';
+  static const String topRatedVehiclesListUri = '/api/v1/vehicles/top-rated/list';
   static const String bandListUri = '/api/v1/vehicles/brand/list';
   static const String taxiCouponApplyUri = '/api/v1/coupon/apply/taxi?code=';
   static const String tripPlaceUri = '/api/v1/trip/place';
@@ -113,12 +112,11 @@ class AppConstants {
   static const String vehicleChargeUri = '/api/v1/vehicle/extra_charge';
   static const String vehiclesUri = '/api/v1/get-vehicles';
   static const String storeRecommendedItemUri = '/api/v1/items/recommended';
-  static const String orderCancellationUri =
-      '/api/v1/customer/order/cancellation-reasons';
+  static const String orderCancellationUri = '/api/v1/customer/order/cancellation-reasons';
   static const String cartStoreSuggestedItemsUri = '/api/v1/items/suggested';
   static const String landingPageUri = '/api/v1/flutter-landing-page';
   static const String mostTipsUri = '/api/v1/most-tips';
-  static const String addFundUri = '/api/v1/customer/wallet/add-fund';
+  static const String addFundUri = '/api/v1/customer/wallet/add-fund-sdk';
   static const String walletBonusUri = '/api/v1/customer/wallet/bonuses';
   static const String guestLoginUri = '/api/v1/auth/guest/request';
   static const String offlineMethodListUri = '/api/v1/offline_payment_method_list';

@@ -14,9 +14,7 @@ class PopularStoreView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeDefault),
-      child: GetBuilder<StoreController>(builder: (storeController) {
+    return  GetBuilder<StoreController>(builder: (storeController) {
         List<Store>? storeList = storeController.popularStoreList;
 
           return Column(children: [
@@ -48,7 +46,7 @@ class PopularStoreView extends StatelessWidget {
 
           ]);
         }
-      ),
+    
     );
   }
 }

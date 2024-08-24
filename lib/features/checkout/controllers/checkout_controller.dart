@@ -49,8 +49,10 @@ class CheckoutController extends GetxController implements GetxService {
   String? countryDialCode =
       Get.find<AuthController>().getUserCountryCode().isNotEmpty
           ? Get.find<AuthController>().getUserCountryCode()
-          : CountryCode.fromCountryCode(Get.find<SplashController>().configModel!.country!).dialCode ??
-            Get.find<LocalizationController>().locale.countryCode;
+          : CountryCode.fromCountryCode(
+                      Get.find<SplashController>().configModel!.country!)
+                  .dialCode ??
+              Get.find<LocalizationController>().locale.countryCode;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -325,6 +327,7 @@ class CheckoutController extends GetxController implements GetxService {
                   .duration!
                   .value! /
               3600;
+          print(response);
         } else {
           _distance = DistanceModel.fromJson(response.body)
                   .rows![0]
@@ -570,7 +573,7 @@ class CheckoutController extends GetxController implements GetxService {
               '&payment_method=$digitalPaymentName&payment_platform=web&&callback=$protocol//$hostname${RouteHelper.orderSuccess}?id=$orderID&status=';
 
           html.window.open(selectedUrl, "_self");
-        } else {
+        } else { // This part is executed to get to phonepe screen - Comment by Jalaj
           Get.offNamed(RouteHelper.getPaymentRoute(
             orderID,
             Get.find<ProfileController>().userInfoModel?.id ?? 0,

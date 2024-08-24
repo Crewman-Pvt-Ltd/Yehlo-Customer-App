@@ -1,9 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:yehlo_User/features/banner/controllers/banner_controller.dart';
+//import 'package:yehlo_User/features/home/plan_price.dart';
 import 'package:yehlo_User/features/home/screens/WelcomeSceen.dart';
 import 'package:yehlo_User/features/home/widgets/HomeScreenModelView.dart';
 import 'package:yehlo_User/features/home/widgets/Weather_Info.dart';
-import 'package:yehlo_User/features/home/widgets/bad_weather_widget.dart';
+//import 'package:yehlo_User/features/home/widgets/bad_weather_widget.dart';
 import 'package:yehlo_User/features/item/controllers/campaign_controller.dart';
 import 'package:yehlo_User/features/category/controllers/category_controller.dart';
 import 'package:yehlo_User/features/coupon/controllers/coupon_controller.dart';
@@ -37,7 +38,7 @@ import 'package:yehlo_User/features/home/screens/web_new_home_screen.dart';
 import 'package:yehlo_User/features/home/widgets/filter_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:yehlo_User/features/home/widgets/module_view.dart';
+//import 'package:yehlo_User/features/home/widgets/module_view.dart';
 import 'package:flutter/rendering.dart';
 import 'package:yehlo_User/features/parcel/screens/parcel_category_screen.dart';
 import '../../store/domain/models/store_model.dart';
@@ -349,7 +350,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     Flexible(
                                                       child: Text(
                                                         AddressHelper
-                                                                  .getUserAddressFromSharedPref()!
+                                                                .getUserAddressFromSharedPref()!
                                                             .address!,
                                                         style: robotoRegular
                                                             .copyWith(
@@ -376,6 +377,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                       )),
                                       const WeatherInfo(),
+                                      const SizedBox(
+                                        width: 10,
+                                      ),
                                       Row(
                                         children: [
                                           InkWell(
@@ -508,199 +512,196 @@ class _HomeScreenState extends State<HomeScreen> {
 
                             SliverToBoxAdapter(
                               child: Center(
-                                  child: SizedBox(
-                                      width: Dimensions.webMaxWidth,
-                                      child: !showMobileModule
-                                          ? Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                  HomeScreenModuleView(
-                                                    splashController:
-                                                        splashController,
-                                                  ),
-                                                  isGrocery
-                                                      ? const GroceryHomeScreen()
-                                                      : isPharmacy
-                                                          ? const PharmacyHomeScreen()
-                                                          : isFood
-                                                              ? const FoodHomeScreen()
-                                                              : isShop
-                                                                  ? const ShopHomeScreen()
-                                                                  : const SizedBox(),
-                                                  Padding(
-                                                    padding: EdgeInsets.fromLTRB(
-                                                        Get.find<LocalizationController>()
-                                                                .isLtr
-                                                            ? 10
-                                                            : 0,
-                                                        15,
-                                                        0,
-                                                        5),
-                                                    child: GetBuilder<
-                                                            StoreController>(
-                                                        builder:
-                                                            (storeController) {
-                                                      return Row(children: [
-                                                        Expanded(
-                                                            child: Padding(
-                                                          padding: EdgeInsets.only(
-                                                              right: Get.find<
-                                                                          LocalizationController>()
-                                                                      .isLtr
-                                                                  ? 0
-                                                                  : 10),
-                                                          child: Text(
-                                                            '${storeController.storeModel?.totalSize ?? 0} ${Get.find<SplashController>().configModel!.moduleConfig!.module!.showRestaurantText! ? 'restaurants'.tr : 'stores'.tr}',
-                                                            style: robotoMedium
-                                                                .copyWith(
-                                                                    fontSize:
-                                                                        Dimensions
-                                                                            .fontSizeLarge),
-                                                          ),
-                                                        )),
-                                                        FilterView(
-                                                            storeController:
-                                                                storeController),
-                                                      ]);
-                                                    }),
-                                                  ),
-                                                  GetBuilder<StoreController>(
-                                                    builder: (storeController) {
-                                                      // Split the store list into two sections
-                                                      List<Store>?
-                                                          firstSectionStores;
-                                                      List<Store>?
-                                                          secondSectionStores;
-
-                                                      final stores =
-                                                          storeController
-                                                                  .storeModel
-                                                                  ?.stores ??
-                                                              [];
-                                                      if (stores.isNotEmpty) {
-                                                        final midIndex =
-                                                            stores.length ~/ 2;
-                                                        firstSectionStores =
-                                                            stores.sublist(
-                                                                0, midIndex);
-                                                        secondSectionStores =
-                                                            stores.sublist(
-                                                                midIndex);
-                                                      }
-
-                                                      return PaginatedListView(
-                                                        scrollController:
-                                                            _scrollController,
-                                                        totalSize:
-                                                            storeController
-                                                                .storeModel
-                                                                ?.totalSize,
-                                                        offset: storeController
-                                                            .storeModel?.offset,
-                                                        onPaginate: (int?
-                                                                offset) async =>
-                                                            await storeController
-                                                                .getStoreList(
-                                                                    offset!,
-                                                                    false),
-                                                        itemView: Row(
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .start,
-                                                          children: [
-                                                            Expanded(
-                                                              child: Column(
-                                                                crossAxisAlignment:
-                                                                    CrossAxisAlignment
-                                                                        .stretch,
-                                                                children: [
-                                                                  ItemsView(
-                                                                    isStore:
-                                                                        true,
-                                                                    items: null,
-                                                                    isFoodOrGrocery:
-                                                                        (isFood ||
-                                                                            isGrocery),
-                                                                    stores:
-                                                                        firstSectionStores,
-                                                                    padding:
-                                                                        EdgeInsets
-                                                                            .symmetric(
-                                                                      horizontal: ResponsiveHelper.isDesktop(
-                                                                              context)
-                                                                          ? Dimensions
-                                                                              .paddingSizeExtraSmall
-                                                                          : Dimensions
-                                                                              .paddingSizeSmall,
-                                                                      vertical: ResponsiveHelper.isDesktop(
-                                                                              context)
-                                                                          ? Dimensions
-                                                                              .paddingSizeExtraSmall
-                                                                          : Dimensions
-                                                                              .paddingSizeDefault,
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                            ),
-                                                            const SizedBox(
-                                                                width:
-                                                                    10), // Add spacing between sections
-                                                            Expanded(
-                                                              child: Column(
-                                                                crossAxisAlignment:
-                                                                    CrossAxisAlignment
-                                                                        .stretch,
-                                                                children: [
-                                                                  ItemsView(
-                                                                    isStore:
-                                                                        true,
-                                                                    items: null,
-                                                                    isFoodOrGrocery:
-                                                                        (isFood ||
-                                                                            isGrocery),
-                                                                    stores:
-                                                                        secondSectionStores,
-                                                                    padding:
-                                                                        EdgeInsets
-                                                                            .symmetric(
-                                                                      horizontal: ResponsiveHelper.isDesktop(
-                                                                              context)
-                                                                          ? Dimensions
-                                                                              .paddingSizeExtraSmall
-                                                                          : Dimensions
-                                                                              .paddingSizeSmall,
-                                                                      vertical: ResponsiveHelper.isDesktop(
-                                                                              context)
-                                                                          ? Dimensions
-                                                                              .paddingSizeExtraSmall
-                                                                          : Dimensions
-                                                                              .paddingSizeDefault,
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                            ),
-                                                          ],
+                                child: SizedBox(
+                                    width: Dimensions.webMaxWidth,
+                                    child: !showMobileModule
+                                        ? Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                                HomeScreenModuleView(
+                                                  splashController:
+                                                      splashController,
+                                                ),
+                                                isGrocery
+                                                    ? const GroceryHomeScreen()
+                                                    : isPharmacy
+                                                        ? const PharmacyHomeScreen()
+                                                        : isFood
+                                                            ? const FoodHomeScreen()
+                                                            : isShop
+                                                                ? const ShopHomeScreen()
+                                                                : const SizedBox(),
+                                                Padding(
+                                                  padding: EdgeInsets.fromLTRB(
+                                                      Get.find<LocalizationController>()
+                                                              .isLtr
+                                                          ? 10
+                                                          : 0,
+                                                      15,
+                                                      0,
+                                                      5),
+                                                  child: GetBuilder<
+                                                          StoreController>(
+                                                      builder:
+                                                          (storeController) {
+                                                    return Row(children: [
+                                                      Expanded(
+                                                          child: Padding(
+                                                        padding: EdgeInsets.only(
+                                                            right: Get.find<
+                                                                        LocalizationController>()
+                                                                    .isLtr
+                                                                ? 0
+                                                                : 10),
+                                                        child: Text(
+                                                          '${storeController.storeModel?.totalSize ?? 0} ${Get.find<SplashController>().configModel!.moduleConfig!.module!.showRestaurantText! ? 'restaurants'.tr : 'stores'.tr}',
+                                                          style: robotoMedium
+                                                              .copyWith(
+                                                                  fontSize:
+                                                                      Dimensions
+                                                                          .fontSizeLarge),
                                                         ),
-                                                      );
-                                                    },
-                                                  ),
-                                                  SizedBox(
-                                                      height: ResponsiveHelper
-                                                              .isDesktop(
-                                                                  context)
-                                                          ? 0
-                                                          : 100),
-                                                ])
-                                          : SizedBox(
-                                              height: MediaQuery.sizeOf(context)
-                                                  .height,
-                                              child: const WelcomeScreen())
-                                      // ModuleView(
-                                      //     splashController: splashController),
-                                      )),
+                                                      )),
+                                                      FilterView(
+                                                          storeController:
+                                                              storeController),
+                                                    ]);
+                                                  }),
+                                                ),
+                                                GetBuilder<StoreController>(
+                                                  builder: (storeController) {
+                                                    // Split the store list into two sections
+                                                    List<Store>?
+                                                        firstSectionStores;
+                                                    List<Store>?
+                                                        secondSectionStores;
+
+                                                    final stores =
+                                                        storeController
+                                                                .storeModel
+                                                                ?.stores ??
+                                                            [];
+                                                    if (stores.isNotEmpty) {
+                                                      final midIndex =
+                                                          stores.length ~/ 2;
+                                                      firstSectionStores =
+                                                          stores.sublist(
+                                                              0, midIndex);
+                                                      secondSectionStores =
+                                                          stores.sublist(
+                                                              midIndex);
+                                                    }
+
+                                                    return PaginatedListView(
+                                                      scrollController:
+                                                          _scrollController,
+                                                      totalSize: storeController
+                                                          .storeModel
+                                                          ?.totalSize,
+                                                      offset: storeController
+                                                          .storeModel?.offset,
+                                                      onPaginate: (int?
+                                                              offset) async =>
+                                                          await storeController
+                                                              .getStoreList(
+                                                                  offset!,
+                                                                  false),
+                                                      itemView: Row(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Expanded(
+                                                            child: Column(
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .stretch,
+                                                              children: [
+                                                                ItemsView(
+                                                                  isStore: true,
+                                                                  items: null,
+                                                                  isFoodOrGrocery:
+                                                                      (isFood ||
+                                                                          isGrocery),
+                                                                  stores:
+                                                                      firstSectionStores,
+                                                                  padding:
+                                                                      EdgeInsets
+                                                                          .symmetric(
+                                                                    horizontal: ResponsiveHelper.isDesktop(
+                                                                            context)
+                                                                        ? Dimensions
+                                                                            .paddingSizeExtraSmall
+                                                                        : Dimensions
+                                                                            .paddingSizeSmall,
+                                                                    vertical: ResponsiveHelper.isDesktop(
+                                                                            context)
+                                                                        ? Dimensions
+                                                                            .paddingSizeExtraSmall
+                                                                        : Dimensions
+                                                                            .paddingSizeDefault,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                              width:
+                                                                  10), // Add spacing between sections
+                                                          Expanded(
+                                                            child: Column(
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .stretch,
+                                                              children: [
+                                                                ItemsView(
+                                                                  isStore: true,
+                                                                  items: null,
+                                                                  isFoodOrGrocery:
+                                                                      (isFood ||
+                                                                          isGrocery),
+                                                                  stores:
+                                                                      secondSectionStores,
+                                                                  padding:
+                                                                      EdgeInsets
+                                                                          .symmetric(
+                                                                    horizontal: ResponsiveHelper.isDesktop(
+                                                                            context)
+                                                                        ? Dimensions
+                                                                            .paddingSizeExtraSmall
+                                                                        : Dimensions
+                                                                            .paddingSizeSmall,
+                                                                    vertical: ResponsiveHelper.isDesktop(
+                                                                            context)
+                                                                        ? Dimensions
+                                                                            .paddingSizeExtraSmall
+                                                                        : Dimensions
+                                                                            .paddingSizeDefault,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                                SizedBox(
+                                                    height: ResponsiveHelper
+                                                            .isDesktop(context)
+                                                        ? 0
+                                                        : 100),
+                                              ])
+                                        : SizedBox(
+                                            height: MediaQuery.sizeOf(context)
+                                                .height,
+                                            child: const WelcomeScreen())
+                                    // ModuleView(
+                                    //     splashController: splashController),
+                                    ),
+                              ),
                             ),
                           ],
                         ),

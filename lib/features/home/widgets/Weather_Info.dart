@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
+import 'package:lottie/lottie.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class WeatherInfo extends StatefulWidget {
   const WeatherInfo({super.key});
@@ -15,8 +15,30 @@ class WeatherInfo extends StatefulWidget {
 
 class _WeatherInfoState extends State<WeatherInfo> {
   String? _message;
-  bool _showAlert = false;
   String? _weatherCondition;
+
+  Future<void> requestLocationPermission() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    }
+  }
 
   Future<void> fetchLocationAndWeather() async {
     try {
@@ -35,42 +57,80 @@ class _WeatherInfoState extends State<WeatherInfo> {
         final condition = jsonData['weather'][0]['main'];
         setState(() {
           _weatherCondition = condition;
-          _showAlert = condition == 'Rain'; // Example condition for bad weather
-          _message = 'It\'s raining!';
-          Get.snackbar('Weahter', _message!);
+          _message = getAlertMessage(condition);
+         // _showAlertIfNeeded();
         });
       } else {
-        // Handle error
+        setState(() {
+          _message = 'Failed to load weather data';
+        });
+        Get.snackbar('Error', _message!);
       }
     } catch (e) {
-      // Handle error
+      setState(() {
+        _message = 'Error: $e';
+      });
+      Get.snackbar('Error', _message!);
+    }
+  }
+
+  // Future<void> _showAlertIfNeeded() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   bool hasShownAlert = prefs.getBool('hasShownAlert') ?? false;
+  //   if (!hasShownAlert) {
+  //     Get.snackbar('Weather', _message!);
+  //     prefs.setBool('hasShownAlert', true);
+  //   }
+  // }
+
+  String getAlertMessage(String condition) {
+    switch (condition) {
+      case 'Rain':
+        return 'It\'s raining!';
+      case 'Clouds':
+        return 'It\'s cloudy!';
+      case 'Clear':
+        return 'It\'s clear!';
+      default:
+        return 'Weather condition: $condition';
     }
   }
 
   @override
+  void initState() {
+    super.initState();
+    requestLocationPermission().then((_) {
+      fetchLocationAndWeather();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    String svgPath = 'assets/svg/Clear.svg';
+    String lottiePath = 'assets/Lottie/Clear.json';
     if (_weatherCondition != null) {
       // Update icon based on weather condition
       switch (_weatherCondition) {
         case 'Rain':
-          svgPath = 'assets/svg/Rain.svg';
+          lottiePath = 'assets/Lottie/Rainy.json';
           break;
         case 'Clouds':
-          svgPath = 'assets/svg/Clouds.svg';
+          lottiePath = 'assets/Lottie/CLD.json';
+          break;
+        case 'Clear':
+          lottiePath = 'assets/Lottie/Clear.json';
           break;
         // Add more cases for other weather conditions if needed
         default:
-          svgPath = 'assets/svg/Clear.svg'; // Default icon
+          lottiePath = 'assets/Lottie/Clear.json'; // Default icon
       }
     }
 
     return Padding(
       padding: const EdgeInsets.only(left: 20),
-      child: SvgPicture.asset(
-        svgPath,
-        width: 60,
-        height: 60,
+      child: Lottie.asset(
+        lottiePath,
+        width: 40,
+        height: 40,
       ),
     );
   }
